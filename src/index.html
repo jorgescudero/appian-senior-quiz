@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Appian Senior · Test de certificación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1B2540; --ink-2:#4A5675; --ink-3:#7C86A2;
+  --paper:#F6F7FA; --panel:#FFFFFF; --line:#DDE2EC; --grid:#E9EDF4;
+  --flow:#2D55E8; --flow-soft:#E6ECFF;
+  --ok:#17804F; --ok-soft:#E2F4EA; --ko:#B8401A; --ko-soft:#FBE8E0;
+  --font:"Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#E8ECF6; --ink-2:#AEB7CE; --ink-3:#7F89A3;
+    --paper:#10162A; --panel:#18203A; --line:#2A3556; --grid:#1D2742;
+    --flow:#7D9BFF; --flow-soft:#22305E;
+    --ok:#5CCB93; --ok-soft:#173A2C; --ko:#F08A64; --ko-soft:#43251B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E8ECF6; --ink-2:#AEB7CE; --ink-3:#7F89A3;
+  --paper:#10162A; --panel:#18203A; --line:#2A3556; --grid:#1D2742;
+  --flow:#7D9BFF; --flow-soft:#22305E;
+  --ok:#5CCB93; --ok-soft:#173A2C; --ko:#F08A64; --ko-soft:#43251B;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+button{font:inherit;color:inherit}
+.wrap{max-width:640px;margin:0 auto;padding:16px 18px 96px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;max-width:640px;margin:0 auto}
+.brand{font-weight:700;font-size:17px;letter-spacing:-.01em}
+.brand small{display:block;font-weight:500;font-size:13px;color:var(--ink-3)}
+.lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.lang button{border:0;background:transparent;padding:6px 12px;font-size:14px;font-weight:600;color:var(--ink-3);cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+h1{font-size:30px;line-height:1.15;letter-spacing:-.02em;margin:8px 0 10px;font-weight:700}
+h2{font-size:20px;letter-spacing:-.01em;margin:24px 0 10px}
+p.lead{color:var(--ink-2);margin:0 0 20px;max-width:52ch}
+.field{display:flex;flex-direction:column;gap:6px;margin:16px 0}
+.field label{font-weight:600;font-size:14px}
+.field input{font:inherit;padding:14px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.field input:focus-visible,button:focus-visible{outline:3px solid var(--flow);outline-offset:2px}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:15px;font-weight:600;font-size:16px;background:var(--flow);color:#fff;cursor:pointer}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+.hint{font-size:13px;color:var(--ink-3)}
+.err{color:var(--ko);font-size:14px;min-height:20px;margin:6px 0}
+
+/* Lista de bloques */
+.blocks{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
+.blocks li{border-bottom:1px solid var(--line)}
+.blocks button{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;background:transparent;border:0;padding:16px 2px;cursor:pointer}
+.bnum{width:40px;height:40px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-weight:700;font-size:15px}
+.done .bnum{background:var(--ink);color:var(--paper)}
+.btitle{font-weight:600}
+.bmeta{font-size:13px;color:var(--ink-3)}
+.bscore{font-weight:700;font-variant-numeric:tabular-nums;font-size:15px}
+.bscore.pass{color:var(--ok)} .bscore.fail{color:var(--ko)}
+.soon{padding:16px 2px;color:var(--ink-3);font-size:14px}
+
+/* Flujo de progreso tipo modelo de proceso */
+.flow{display:flex;align-items:center;margin:6px 0 18px;overflow-x:auto;padding:6px 2px}
+.flow .ev{flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--ink-3)}
+.flow .ev.end{border-width:4px}
+.flow .ln{flex:1 1 8px;min-width:6px;height:2px;background:var(--line)}
+.flow .nd{flex:none;width:18px;height:14px;border-radius:4px;border:2px solid var(--line);background:var(--panel)}
+.flow .nd.cur{border-color:var(--flow);background:var(--flow-soft);transform:scale(1.25)}
+.flow .nd.ok{border-color:var(--ok);background:var(--ok)}
+.flow .nd.ko{border-color:var(--ko);background:var(--ko)}
+.flow .ln.past{background:var(--ink-3)}
+
+.qmeta{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:var(--ink-3);margin-bottom:6px}
+.tag{font-weight:600;color:var(--flow)}
+.qcard{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+.qtext{font-size:19px;font-weight:600;line-height:1.4;margin:4px 0 6px}
+.qlang{font-size:13px;color:var(--ink-3);margin-bottom:14px}
+.qlang b{color:var(--ink-2)}
+.qcard.flash{animation:flash .35s ease}
+@keyframes flash{0%{opacity:.35}100%{opacity:1}}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;text-align:left;width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);cursor:pointer;line-height:1.45}
+.opt .k{font-weight:700;color:var(--ink-3)}
+.opt.sel{border-color:var(--flow);box-shadow:inset 0 0 0 1px var(--flow)}
+.opt.sel .k{color:var(--flow)}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)} .opt.ok .k{color:var(--ok)}
+.opt.ko{border-color:var(--ko);background:var(--ko-soft)} .opt.ko .k{color:var(--ko)}
+.fb{margin:16px 0 4px;padding:14px 16px;border-left:4px solid var(--ink-3);background:var(--panel);border-radius:0 10px 10px 0;font-size:15px;line-height:1.55}
+.fb.ok{border-color:var(--ok)} .fb.ko{border-color:var(--ko)}
+.fb strong{display:block;margin-bottom:4px}
+.fb .src{display:block;margin-top:8px;font-size:13px;color:var(--ink-3)}
+.actions{position:sticky;bottom:0;padding:14px 0 calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,var(--paper) 30%)}
+.backlink{background:none;border:0;padding:6px 0;color:var(--ink-2);font-weight:600;cursor:pointer}
+
+/* Resultado */
+.big{font-size:64px;font-weight:700;letter-spacing:-.03em;line-height:1;margin:18px 0 4px;font-variant-numeric:tabular-nums}
+.verdict{font-weight:600;margin-bottom:18px}
+.verdict.pass{color:var(--ok)} .verdict.fail{color:var(--ko)}
+.review{list-style:none;padding:0;margin:0}
+.review li{padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+.review .ans{color:var(--ok);font-weight:600}
+
+/* Ranking */
+.rank{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
+.rank li{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;padding:14px 2px;border-bottom:1px solid var(--line)}
+.rank .pos{font-weight:700;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.rank li.me{background:var(--flow-soft);border-radius:8px;padding-left:8px;padding-right:8px}
+.rank .pts{font-weight:700;font-variant-numeric:tabular-nums}
+.rank .sub{font-size:13px;color:var(--ink-3)}
+.note{font-size:14px;color:var(--ink-2);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0}
+
+/* Navegación inferior */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs div{max-width:640px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr}
+nav.tabs button{border:0;background:transparent;padding:14px;font-weight:600;color:var(--ink-3);cursor:pointer}
+nav.tabs button[aria-current="page"]{color:var(--flow);box-shadow:inset 0 3px 0 var(--flow)}
+
+.cur-card{border:2px solid var(--flow);border-radius:14px;padding:18px;margin:8px 0 24px;background:var(--panel)}
+.cur-card .k{font-size:14px;color:var(--flow);font-weight:600}
+.cur-card .t{font-size:21px;font-weight:700;letter-spacing:-.01em;margin:4px 0 4px}
+.cur-card p{margin:0 0 14px;color:var(--ink-2);font-size:15px}
+.st{font-size:13px;font-weight:600}
+.st.passed{color:var(--ok)} .st.open{color:var(--flow)} .st.locked,.st.soon{color:var(--ink-3)}
+.locked .bnum,.soon .bnum{border-style:dashed;border-color:var(--ink-3);color:var(--ink-3)}
+.lrow{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:14px 2px;border-bottom:1px solid var(--line)}
+.lrow .btitle{font-size:15px}
+.mini{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:9px 12px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
+.mini.pri{background:var(--flow);border-color:var(--flow);color:#fff}
+.mini:disabled{opacity:.5;cursor:default}
+.blocks button:disabled{cursor:default}
+.exam-card{border:1px solid var(--line);border-radius:14px;padding:18px;margin:28px 0 8px;background:var(--panel)}
+.exam-card.on{border:2px solid var(--ok)}
+.exam-card .k{font-size:14px;font-weight:600;color:var(--ink-3)}
+.exam-card.on .k{color:var(--ok)}
+.exam-card .t{font-size:19px;font-weight:700;margin:4px 0}
+.exam-card p{margin:0 0 12px;color:var(--ink-2);font-size:15px}
+.exam-top{display:flex;justify-content:space-between;align-items:center}
+.timer{font-weight:700;font-variant-numeric:tabular-nums;font-size:18px;color:var(--flow)}
+.hidden{display:none !important}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<header class="top" id="topbar">
+  <div class="brand">Appian Senior<small id="hello">Preparación ACD201</small></div>
+  <div class="lang" role="group" aria-label="Idioma de las preguntas">
+    <button type="button" id="lang-es" aria-pressed="true">ES</button>
+    <button type="button" id="lang-en" aria-pressed="false">EN</button>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+
+<nav class="tabs hidden" id="tabs" aria-label="Secciones">
+  <div>
+    <button type="button" id="tab-blocks" aria-current="page">Mi ruta</button>
+    <button type="button" id="tab-list">Lista</button>
+    <button type="button" id="tab-rank">Ranking</button>
+  </div>
+</nav>
+
+<script>
+/* ============ BANCO DE PREGUNTAS ============
+   Cada pregunta: t (tema), q (pregunta), o (4 opciones), a (índice correcto), e (explicación), s (fuente).
+   Los campos de texto son [español, inglés]. */
+const T = {
+  logs:["Logs","Logs"], mem:["Memoria de procesos","Process memory"], pm:["Modelos de proceso","Process models"],
+  int:["Integraciones","Integrations"], sec:["Seguridad","Security"], rec:["Record types","Record types"],
+  api:["Web APIs","Web APIs"], hc:["Health Check","Health Check"], ui:["Interfaces","Interfaces"],
+  saml:["SAML y SSO","SAML and SSO"], plug:["Plug-ins","Plug-ins"], ai:["IA","AI"],
+  dm:["Modelo de datos","Data modeling"], db:["Base de datos","Database"], sync:["Sincronización de datos","Data sync"],
+  perf:["Rendimiento","Performance"], mon:["Monitorización","Monitoring"], test:["Testing","Testing"]
+};
+const BLOCKS = [
+{ id:"b1", title:["Logs, memoria y procesos","Logs, memory and processes"], qs:[
+ {t:"logs",q:["¿En qué directorio escribe Appian los performance logs?","In which directory does Appian write performance logs?"],
+  o:[["APPIAN_HOME/logs/perflogs","APPIAN_HOME/conf/perf","APPIAN_HOME/server/logs/engine","APPIAN_HOME/tomcat/perflogs"],["APPIAN_HOME/logs/perflogs","APPIAN_HOME/conf/perf","APPIAN_HOME/server/logs/engine","APPIAN_HOME/tomcat/perflogs"]],a:0,
+  e:["Los logs de rendimiento se escriben en APPIAN_HOME/logs/perflogs en formato CSV, pensados para analizarse con hojas de cálculo.","Performance logs are written to APPIAN_HOME/logs/perflogs in CSV format, designed to be analyzed in spreadsheets."],s:"Appian Docs · System Logs"},
+ {t:"logs",q:["Sobre los perflogs del servidor de aplicaciones (summary, details, trace), ¿qué afirmación es correcta?","About the application server perflogs (summary, details, trace), which statement is correct?"],
+  o:[["Los tres están activos por defecto","Summary se escribe cada 5 min, details cada hora y trace está desactivado por defecto","Trace se escribe cada hora y summary en cada evento","Details está desactivado por defecto y trace activo"],["All three are enabled by default","Summary is written every 5 min, details every hour, and trace is disabled by default","Trace is written every hour and summary on every event","Details is disabled by default and trace is enabled"]],a:1,
+  e:["Summary agrega cada 5 minutos (escribe línea aunque no haya eventos), details cada hora con más detalle, y trace está desactivado por defecto y registra cada evento.","Summary aggregates every 5 minutes (it writes a line even with no events), details every hour with more granularity, and trace is disabled by default and records every event."],s:"Appian Docs · System Logs"},
+ {t:"logs",q:["¿Por qué los trace logs vienen desactivados por defecto?","Why are trace logs disabled by default?"],
+  o:[["Porque solo funcionan en Appian Cloud","Porque ralentizan los motores de proceso al 50%","Porque consumen más disco de forma impredecible y pueden contener datos sensibles como usernames","Porque duplican la información de los summary logs"],["Because they only work on Appian Cloud","Because they slow process engines down by 50%","Because they use more disk space unpredictably and may contain sensitive data such as usernames","Because they duplicate the summary logs’ information"]],a:2,
+  e:["Requieren más espacio en disco, de forma menos predecible, y contienen datos introducidos por personas que pueden ser sensibles.","They need more disk space, less predictably, and contain user-entered data that may be sensitive."],s:"Appian Docs · System Logs"},
+ {t:"logs",q:["Quieres analizar un .csv de perflogs en un sistema en ejecución. ¿Qué debes hacer?","You want to analyze a perflog .csv on a running system. What should you do?"],
+  o:[["Abrirlo directamente en Excel y guardar los cambios","Copiar el fichero y abrir solo la copia","Detener los motores antes de abrirlo","Renombrarlo para que Appian cree uno nuevo"],["Open it directly in Excel and save changes","Copy the file and open only the copy","Stop the engines before opening it","Rename it so Appian creates a new one"]],a:1,
+  e:["Abrir los .csv con programas que bloquean el fichero puede impedir que el servidor o los motores sigan escribiendo hasta reiniciarlos. Se copian y se abre la copia.","Opening the .csv files in programs that lock them can stop the server or engines from writing until restarted. Copy them and open the copy."],s:"Appian Docs · System Logs"},
+ {t:"mem",q:["Un proceso completado se archiva correctamente. ¿Qué ocurre con su consumo de recursos?","A completed process is archived successfully. What happens to its resource usage?"],
+  o:[["Sigue ocupando la misma RAM hasta reiniciar","Deja de ocupar RAM y pasa a ocupar disco","Se elimina por completo de RAM y disco","Ocupa el doble de RAM hasta que se purga"],["It keeps using the same RAM until a restart","It stops using RAM and takes up disk space instead","It is fully removed from RAM and disk","It uses twice the RAM until purged"]],a:1,
+  e:["Los procesos archivados ya no consumen RAM, pero ocupan disco. Solo se archivan procesos completados o cancelados.","Archived processes no longer use RAM but take up disk space. Only completed or cancelled processes are archived."],s:"Appian Community · Certified Lead Developer"},
+ {t:"mem",q:["Según el Design Review Checklist de Appian, ¿qué configuración de data management se recomienda?","According to Appian’s Design Review Checklist, which data management setting is recommended?"],
+  o:[["Archivar todos los procesos tras 30 días","Borrar todos los procesos tras 0 días","Con user input tasks: archivar tras 3 días; el resto: borrar tras 0 días","Con tareas de usuario: borrar tras 0 días; el resto: archivar tras 3 días"],["Archive all processes after 30 days","Delete all processes after 0 days","With user input tasks: archive after 3 days; the rest: delete after 0 days","With user tasks: delete after 0 days; the rest: archive after 3 days"]],a:2,
+  e:["Se recomienda archivar a los 3 días los procesos con tareas de usuario (o lógica relevante) y borrar a los 0 días los demás.","Archive processes with user tasks (or relevant logic) after 3 days and delete the rest after 0 days."],s:"Appian Community · Design Review Checklist"},
+ {t:"mem",q:["¿Cuál es la mejor práctica para reducir memoria al usar datos de base de datos en un proceso?","What is the best practice to reduce memory when using database data in a process?"],
+  o:[["Traer todos los registros a una PV y filtrar con expresiones","Filtrar en la consulta para traer solo los datos necesarios","Guardar los datos en un documento y leerlo en cada nodo","Duplicar la PV en cada script task"],["Load every record into a PV and filter with expressions","Filter in the query to fetch only the data you need","Save the data to a document and read it in every node","Duplicate the PV in each script task"]],a:1,
+  e:["El historial del proceso guarda el estado de las PVs al inicio y fin de cada script task, así que conviene que sean pequeñas y que filtre la base de datos.","Process history stores PV state at the start and end of every script task, so keep PVs small and let the database filter."],s:"Appian Community · Certified Lead Developer"},
+ {t:"pm",q:["¿En qué caso necesitas Subprocess en lugar de Start Process?","When do you need Subprocess instead of Start Process?"],
+  o:[["Siempre que el hijo sea asíncrono","Cuando necesitas activity chaining hacia formularios del hijo o pasar variables por referencia","Cuando el hijo llama a una integración","Cuando el proceso se lanza desde una Web API"],["Whenever the child is asynchronous","When you need activity chaining into the child’s forms or to pass variables by reference","When the child calls an integration","When the process is started from a Web API"]],a:1,
+  e:["Se recomienda Start Process siempre que se pueda, salvo que necesites algo que no ofrece, como pasar por referencia o encadenar a formularios del hijo.","Use Start Process whenever possible, unless you need something it lacks, such as passing by reference or chaining into the child’s forms."],s:"Appian Community · Appian Employee"},
+ {t:"pm",q:["Desde la versión 24.4, ¿cómo se define que Start Process sea síncrono?","Since version 24.4, how do you make Start Process synchronous?"],
+  o:[["Encadenando (activity chaining) el nodo","Con una opción en la configuración del propio nodo","Marcando «Run as whoever designed this model»","No puede ser síncrono"],["By activity chaining the node","With an option in the node’s own configuration","By checking “Run as whoever designed this model”","It can’t be synchronous"]],a:1,
+  e:["El nuevo Start Process ya no usa el activity chaining para definir el comportamiento síncrono; se configura en el nodo.","The new Start Process no longer uses activity chaining to define synchronous behavior; it’s set in the node."],s:"Appian Community · Sub Process vs Start Process"},
+ {t:"int",q:["¿Cuál es la única forma segura de configurar una API key para una integración?","What is the only secure way to configure an API key for an integration?"],
+  o:[["Ponerla en una constante de texto","Escribirla en los headers de la integración","Usar un Connected System con autenticación API Key","Pasarla como parámetro de regla"],["Store it in a text constant","Write it in the integration headers","Use a Connected System with API Key authentication","Pass it as a rule input"]],a:2,
+  e:["Aunque se puede poner en headers o parámetros, la única forma segura es el connected system. Los valores sensibles no se exportan en el import customization file.","You can put it in headers or parameters, but the only secure way is the connected system. Sensitive values aren’t exported in the import customization file."],s:"Appian Docs · Connected System Authentication"}
+]},
+{ id:"b2", title:["Seguridad, record types y Web APIs","Security, record types and Web APIs"], qs:[
+ {t:"sec",q:["Juan está en el Grupo A (Administrator) y el Grupo B (Viewer) del role map de un objeto. ¿Qué permiso efectivo tiene?","John is in Group A (Administrator) and Group B (Viewer) on an object’s role map. What is his effective permission?"],
+  o:[["Viewer, porque prevalece el más restrictivo","Administrator, porque prevalece el permiso más alto","Ninguno, porque hay conflicto","Editor, como término medio"],["Viewer, the most restrictive wins","Administrator, the highest permission wins","None, because of the conflict","Editor, as a middle ground"]],a:1,
+  e:["Si un usuario está en varios grupos del role map, siempre recibe su permiso más alto.","A user in several groups of a role map always gets their highest permission."],s:"Appian Docs · Object Security"},
+ {t:"sec",q:["¿Cuándo tiene sentido usar el permiso Deny?","When does the Deny permission make sense?"],
+  o:[["Para dar acceso de solo lectura","Cuando un grupo no debe tener acceso pero está anidado dentro de otro que sí lo tiene","Para impedir que el objeto se exporte","Para bloquear el objeto mientras se edita"],["To grant read-only access","When a group shouldn’t have access but is nested in another group that does","To stop the object from being exported","To lock the object while editing"]],a:1,
+  e:["Deny anula el resto de permisos del grupo. Es útil con grupos anidados; fuera de eso equivale a no listar el grupo.","Deny overrides the group’s other permissions. It’s useful with nested groups; otherwise it’s the same as not listing the group."],s:"Appian Docs · Object Security"},
+ {t:"sec",q:["Seguridad por capas: ¿qué permisos mínimos necesita un usuario para lanzar una related action desde un site?","Layered security: what minimum permissions does a user need to start a related action from a site?"],
+  o:[["Viewer en el process model y Editor en el record type","Initiator en el process model y Viewer en el record type","Administrator en el record type","Manager en el process model"],["Viewer on the process model and Editor on the record type","Initiator on the process model and Viewer on the record type","Administrator on the record type","Manager on the process model"]],a:1,
+  e:["El usuario necesita permisos en cada objeto implicado: Initiator en el modelo y Viewer en el record type, además del site.","The user needs permissions on every object involved: Initiator on the model and Viewer on the record type, plus the site."],s:"Appian Docs · Object Security"},
+ {t:"sec",q:["¿Qué recomienda Appian para configurar los role maps?","What does Appian recommend for configuring role maps?"],
+  o:[["Asignar usuarios individuales para mayor control","Usar solo grupos","Dar Administrator a todos los desarrolladores en producción","Dejar los role maps vacíos y usar visibilidad en interfaces"],["Assign individual users for more control","Use groups only","Give Administrator to all developers in production","Leave role maps empty and use interface visibility"]],a:1,
+  e:["Con grupos controlas el acceso cambiando la pertenencia, sin tocar el role map.","With groups you control access by changing membership, without editing the role map."],s:"Appian Docs · Object Security"},
+ {t:"rec",q:["Un usuario es Administrator de un record type sincronizado, pero no está incluido en su record-level security. ¿Qué ve?","A user is Administrator of a synced record type but isn’t included in its record-level security. What do they see?"],
+  o:[["Todos los registros, por ser Administrator","Ningún registro","Solo los registros que él creó","Los registros, pero no las acciones"],["All records, as Administrator","No records","Only the records they created","The records, but not the actions"]],a:1,
+  e:["La record-level security se aplica encima de la seguridad de objeto: si no está incluido, no ve ningún registro.","Record-level security is layered on top of object security: if they aren’t included, they see no records."],s:"Appian Docs · Record-Level Security"},
+ {t:"rec",q:["Tienes un record type antiguo sin data sync. ¿Qué recomienda Appian?","You have an old record type without data sync. What does Appian recommend?"],
+  o:[["Activar data sync en ese mismo record type","Crear un record type nuevo con sync y migrar las referencias poco a poco","Borrar el antiguo y renombrar el nuevo igual","Convertirlo en process-backed"],["Enable data sync on that same record type","Create a new synced record type and migrate references gradually","Delete the old one and give the new one the same name","Convert it to process-backed"]],a:1,
+  e:["Activar sync en un record type existente crea campos con UUIDs nuevos y rompería referencias.","Enabling sync on an existing record type creates fields with new UUIDs and would break references."],s:"Appian Docs · About Data Sync"},
+ {t:"api",q:["¿Qué autenticación de Web APIs actúa como el usuario que ha iniciado sesión y no como cuenta de servicio?","Which Web API authentication acts as the signed-in user rather than a service account?"],
+  o:[["API key","Basic authentication","OAuth 2.0 Client Credentials","OAuth 2.0 Authorization Code"],["API key","Basic authentication","OAuth 2.0 Client Credentials","OAuth 2.0 Authorization Code"]],a:3,
+  e:["API key, Basic y Client Credentials autentican como service account. Authorization Code actúa como el usuario: se evalúa su seguridad y queda en los audit logs.","API key, Basic and Client Credentials authenticate as a service account. Authorization Code acts as the user: their security is evaluated and they appear in audit logs."],s:"Appian Docs · Web API Authentication"},
+ {t:"api",q:["Un sistema externo llama a tu Web API con una API key y recibe un 404. ¿Causa más probable?","An external system calls your Web API with an API key and gets a 404. Most likely cause?"],
+  o:[["La API key ha caducado","La cuenta de servicio no está en un grupo con permiso sobre la Web API","El endpoint debe usar el puerto 8080","Falta activar SAML"],["The API key expired","The service account isn’t in a group with permission on the Web API","The endpoint must use port 8080","SAML isn’t enabled"]],a:1,
+  e:["Hay que revisar que la service account esté en un grupo con permiso. Además, las API keys no caducan automáticamente.","Check that the service account is in a group with permission. Also, API keys don’t expire automatically."],s:"Appian Docs · Web API Authentication"},
+ {t:"api",q:["¿Quién NO puede usar basic authentication para llamar a una Web API?","Who CANNOT use basic authentication to call a Web API?"],
+  o:[["Usuarios con autenticación Appian","Usuarios con autenticación LDAP","Miembros del grupo de sistema SAML o del grupo Service Accounts","Administradores del sistema"],["Users with Appian authentication","Users with LDAP authentication","Members of the SAML system group or the Service Accounts group","System administrators"]],a:2,
+  e:["Usuarios Appian o LDAP pueden usar usuario y contraseña, pero no los miembros de SAML o Service Accounts. Tampoco funciona con MFA forzado por defecto.","Appian or LDAP users can use username and password, but not SAML or Service Accounts members. It also fails when MFA is enforced by default."],s:"Appian Docs · Web API Authentication"},
+ {t:"api",q:["¿Para qué se reserva la autenticación basada en sesión?","What is session-based authentication reserved for?"],
+  o:[["Llamadas entre servidores","Llamadas iniciadas desde el navegador","Portals con mTLS","Integraciones con Salesforce"],["Server-to-server calls","Browser-initiated calls","Portals with mTLS","Salesforce integrations"]],a:1,
+  e:["Solo sirve para llamadas desde el navegador (login de Appian o SAML SSO), no para llamar desde otro sistema.","It only works for browser calls (Appian login or SAML SSO), not for calls from another system."],s:"Appian Docs · Web API Authentication"},
+ {t:"hc",q:["Health Check avisa de CDTs pasados por referencia a subprocesos. ¿Qué se recomienda?","Health Check flags CDTs passed by reference to subprocesses. What is recommended?"],
+  o:[["Pasarlos siempre por referencia para ahorrar memoria","Pasarlos siempre por valor","Usar solo diccionarios","Publicar nuevas versiones del CDT en fin de semana"],["Always pass them by reference to save memory","Always pass them by value","Use dictionaries only","Publish new CDT versions at weekends"]],a:1,
+  e:["Con una nueva versión del CDT, las instancias activas pueden fallar en el nodo de subproceso. Por valor se convierten solos.","With a new CDT version, active instances may fail at the subprocess node. By value they’re cast automatically."],s:"Appian Docs · Health Check Report"},
+ {t:"hc",q:["¿Qué hojas componen el informe de Health Check?","Which sheets make up the Health Check report?"],
+  o:[["Summary, Details, Dashboard y Process Sizing","Overview, Logs, Users y Memory","Summary, Errors, Plugins y Security","Design, Infrastructure, Users y Processes"],["Summary, Details, Dashboard and Process Sizing","Overview, Logs, Users and Memory","Summary, Errors, Plugins and Security","Design, Infrastructure, Users and Processes"]],a:0,
+  e:["Son cuatro hojas. Process Sizing muestra el uso de memoria de las instancias en los motores.","There are four sheets. Process Sizing shows instance memory usage in the engines."],s:"Appian Docs · Health Check Report"}
+]},
+{ id:"b3", title:["Interfaces, SAML y plug-ins","Interfaces, SAML and plug-ins"], qs:[
+ {t:"ui",q:["¿Cuál es el refresco por defecto de una variable definida en a!localVariables()?","What is the default refresh of a variable defined in a!localVariables()?"],
+  o:[["Se evalúa una sola vez al cargar","Se refresca tras cada interacción","Se refresca cuando cambia una variable referenciada en su valor","Se refresca cada 5 minutos"],["It evaluates once on load","It refreshes after every interaction","It refreshes when a variable referenced in its value changes","It refreshes every 5 minutes"]],a:2,
+  e:["Por defecto se refrescan cuando cambia una variable referenciada. a!refreshVariable() permite cambiarlo.","By default they refresh when a referenced variable changes. a!refreshVariable() lets you change that."],s:"Appian Docs · Refresh Behavior in Interfaces"},
+ {t:"ui",q:["¿Qué opción de a!refreshVariable() refresca tras cada interacción y cada refresco por intervalo?","Which a!refreshVariable() option refreshes after every interaction and every interval refresh?"],
+  o:[["refreshOnReferencedVarChange","refreshOnVarChange","refreshAlways","refreshAfter"],["refreshOnReferencedVarChange","refreshOnVarChange","refreshAlways","refreshAfter"]],a:2,
+  e:["refreshAlways refresca tras cualquier interacción o temporizador. Es la más costosa.","refreshAlways refreshes after any interaction or timer. It’s the most expensive."],s:"Appian Docs · Refresh Behavior in Interfaces"},
+ {t:"ui",q:["local!datos llama a una regla con sus propias local variables. Al refrescar local!datos, la consulta interna no se re-ejecuta. ¿Solución?","local!data calls a rule with its own local variables. When local!data refreshes, the inner query doesn’t re-run. Fix?"],
+  o:[["Usar load() en vez de a!localVariables()","Que las variables internas usen a!refreshVariable con refreshAlways: true","Poner refreshInterval: 0","Convertir la regla en constante"],["Use load() instead of a!localVariables()","Make the inner variables use a!refreshVariable with refreshAlways: true","Set refreshInterval: 0","Turn the rule into a constant"]],a:1,
+  e:["Las variables internas de una regla no se re-evalúan al refrescar la externa salvo con refreshAlways: true.","A rule’s inner variables don’t re-evaluate when the outer one refreshes unless they use refreshAlways: true."],s:"Appian Docs · Refresh Behavior in Interfaces"},
+ {t:"ui",q:["Un grid con refreshAfter: \"RECORD_ACTION\" no se actualiza tras la acción. ¿Causa común?","A grid with refreshAfter: \"RECORD_ACTION\" doesn’t update after the action. Common cause?"],
+  o:[["La acción no se abre en un diálogo","El grid tiene showSearchBox activado","El record type no tiene acciones","Falta pageSize"],["The action doesn’t open in a dialog","The grid has showSearchBox enabled","The record type has no actions","pageSize is missing"]],a:0,
+  e:["La acción debe abrirse en un diálogo (openActionsIn: \"DIALOG\") para que el grid se refresque.","The action must open in a dialog (openActionsIn: \"DIALOG\") for the grid to refresh."],s:"Appian Docs · Refresh Behavior in Interfaces"},
+ {t:"saml",q:["En el modelo SAML aplicado a Appian, ¿qué rol tiene Appian?","In the SAML model applied to Appian, what role does Appian play?"],
+  o:[["Identity Provider (IdP)","Service Provider (SP)","Principal","Certificate Authority"],["Identity Provider (IdP)","Service Provider (SP)","Principal","Certificate Authority"]],a:1,
+  e:["El usuario es el Principal, Appian el Service Provider y el cliente (por ejemplo ADFS) el Identity Provider.","The user is the Principal, Appian the Service Provider and the customer (e.g. ADFS) the Identity Provider."],s:"Appian Docs · SAML for Single Sign-On"},
+ {t:"saml",q:["Un usuario está en grupos de autenticación de varios IdP SAML. ¿Con cuál se autentica?","A user is in authentication groups for several SAML IdPs. Which one do they sign in with?"],
+  o:[["Con el primero que se configuró","Con el IdP que esté más arriba en la lista","Elige en cada inicio de sesión","Con todos a la vez"],["The first one configured","The IdP highest in the list","They choose at each sign-in","All of them at once"]],a:1,
+  e:["El IdP más alto en la lista tiene prioridad, aunque lo recomendado es que nadie esté en varios grupos de autenticación.","The IdP highest in the list wins, though nobody should be in several authentication groups."],s:"Appian Docs · Single Sign-On"},
+ {t:"saml",q:["¿Puede un mismo usuario autenticarse por SAML y también por LDAP?","Can one user authenticate with both SAML and LDAP?"],
+  o:[["Sí, si el administrador lo activa","Sí, pero solo en Appian Cloud","No: cada usuario usa un único método","Solo si tiene MFA"],["Yes, if the admin enables it","Yes, but only on Appian Cloud","No: each user uses a single method","Only with MFA"]],a:2,
+  e:["Cada usuario se autentica por un solo IdP, por autenticación Appian o por LDAP.","Each user authenticates through a single IdP, Appian authentication or LDAP."],s:"Appian Docs · Single Sign-On"},
+ {t:"saml",q:["¿Cuál de estas afirmaciones sobre SAML en Appian es correcta?","Which statement about SAML in Appian is correct?"],
+  o:[["La configuración SAML se exporta con el paquete","Un usuario SAML puede llamar a Web APIs con su contraseña","La configuración SAML no se puede importar ni exportar desde el Admin Console","SAML solo admite SHA-1"],["SAML settings export with the package","A SAML user can call Web APIs with their password","SAML settings can’t be imported or exported from the Admin Console","SAML only supports SHA-1"]],a:2,
+  e:["Los ajustes SSO/SAML no se importan ni exportan, y un usuario SAML no puede llamar a Web APIs. Se admite SHA-1 y SHA-256 (recomendado).","SSO/SAML settings can’t be imported or exported, and a SAML user can’t call Web APIs. SHA-1 and SHA-256 (recommended) are supported."],s:"Appian Docs · Single Sign-On"},
+ {t:"saml",q:["¿Qué hace Appian si recibe una aserción SAML sin firmar?","What does Appian do with an unsigned SAML assertion?"],
+  o:[["La acepta si viene cifrada","La rechaza","La acepta y registra un aviso","La reenvía al IdP para firmarla"],["Accepts it if encrypted","Rejects it","Accepts it and logs a warning","Sends it back to the IdP to be signed"]],a:1,
+  e:["Toda la comunicación con el IdP debe usar aserciones firmadas; las no firmadas se rechazan.","All communication with the IdP must use signed assertions; unsigned ones are rejected."],s:"Appian Docs · SAML for Single Sign-On"},
+ {t:"plug",q:["¿Por qué priorizar funcionalidad nativa (OOTB) frente a un plug-in?","Why prefer out-of-the-box features over a plug-in?"],
+  o:[["Los plug-ins no se pueden usar en procesos","Appian Support no da soporte a correcciones ni desarrollo de plug-ins","Los plug-ins solo funcionan on-premise","Los plug-ins no pasan por el motor de procesos"],["Plug-ins can’t be used in processes","Appian Support doesn’t cover plug-in fixes or development","Plug-ins only work on-premise","Plug-ins bypass the process engine"]],a:1,
+  e:["Las correcciones de plug-ins no tienen soporte de Appian. Si ya hay uno parecido, mejor ampliarlo que crear otro.","Plug-in fixes aren’t supported by Appian. If a similar one exists, extend it rather than build a new one."],s:"Appian Community · Plugin Development Best Practices"},
+ {t:"plug",q:["Vas a actualizar un plug-in usado en tus procesos. ¿Qué cambio implica riesgo de incompatibilidad?","You’re upgrading a plug-in used in your processes. Which change risks incompatibility?"],
+  o:[["Una versión menor (1.4 → 1.5)","Una versión mayor (1.x → 2.0)","Cualquier parche","Ninguno, siempre son compatibles"],["A minor version (1.4 → 1.5)","A major version (1.x → 2.0)","Any patch","None, they’re always compatible"]],a:1,
+  e:["Las versiones menores son compatibles con las anteriores; las mayores no. Aun así, prueba siempre.","Minor versions are backward compatible; major ones aren’t. Always test anyway."],s:"Appian Community · Certified Lead Developer"},
+ {t:"plug",q:["Sobre los plug-ins en Appian Cloud, ¿qué es correcto?","About plug-ins on Appian Cloud, which is correct?"],
+  o:[["Cualquier plug-in se instala sin revisión","Los plug-ins privados deben enviarse a Appian para aprobación antes de desplegarse","Appian garantiza los plug-ins del AppMarket","Pueden usar paquetes com.appiancorp.*"],["Any plug-in installs without review","Private plug-ins must be submitted to Appian for approval before deployment","Appian guarantees AppMarket plug-ins","They may use com.appiancorp.* packages"]],a:1,
+  e:["En Cloud todos los plug-ins, públicos o privados, necesitan aprobación. Su uso es bajo tu riesgo y debes probarlos antes de producción.","On Cloud every plug-in, public or private, needs approval. Use is at your own risk and you must test before production."],s:"Appian Docs · Shared Components"}
+]},
+{ id:"b4", title:["IA en Appian","AI in Appian"], qs:[
+ {t:"ai",q:["Necesitas clasificar documentos en categorías propias de tu negocio. ¿Qué usas?","You need to classify documents into your own business categories. What do you use?"],
+  o:[["El AI skill de document extraction","El AI skill de document classification","El smart service Reconcile Doc Extraction","El componente Records Chat"],["The document extraction AI skill","The document classification AI skill","The Reconcile Doc Extraction smart service","The Records Chat component"]],a:1,
+  e:["El AI skill de document classification permite crear y entrenar modelos de ML personalizados con tus categorías.","The document classification AI skill lets you create and train custom ML models with your categories."],s:"Appian Docs · AI Use Cases"},
+ {t:"ai",q:["Quieres extraer datos de PDFs sin clasificarlos antes. ¿Qué usas?","You want to extract data from PDFs without classifying them first. What do you use?"],
+  o:[["El AI skill de document extraction, definiendo la estructura del documento","El AI skill de email classification","El AI skill de text classification","Un plug-in de OCR del AppMarket obligatoriamente"],["The document extraction AI skill, defining the document structure","The email classification AI skill","The text classification AI skill","An AppMarket OCR plug-in, necessarily"]],a:0,
+  e:["Con el AI skill de document extraction defines la estructura del documento que quieres extraer.","With the document extraction AI skill you define the structure of the document to extract."],s:"Appian Docs · AI Use Cases"},
+ {t:"ai",q:["Un usuario debe confirmar manualmente los datos extraídos de un documento. ¿Qué pieza usas?","A user must manually confirm data extracted from a document. Which piece do you use?"],
+  o:[["Sync Records","Reconcile Doc Extraction","Start Process","Write Records"],["Sync Records","Reconcile Doc Extraction","Start Process","Write Records"]],a:1,
+  e:["El smart service Reconcile Doc Extraction permite revisar y confirmar manualmente los resultados de la extracción.","The Reconcile Doc Extraction smart service lets a person review and confirm extraction results."],s:"Appian Docs · AI Use Cases"},
+ {t:"ai",q:["Una app de soporte debe detectar el idioma de un texto y traducirlo. ¿Qué AI skill encaja?","A support app must detect a text’s language and translate it. Which AI skill fits?"],
+  o:[["Document classification","Text classification","Prompt builder","Email classification"],["Document classification","Text classification","Prompt builder","Email classification"]],a:2,
+  e:["El prompt builder AI skill crea prompts para modelos de IA generativa, como detectar idioma y traducir.","The prompt builder AI skill builds prompts for generative AI models, such as detecting language and translating."],s:"Appian Docs · AI Use Cases"},
+ {t:"ai",q:["Necesitas clasificar texto en categorías a partir de HTML o texto plano. ¿Qué AI skill usas?","You need to classify text into categories from HTML or plain text. Which AI skill do you use?"],
+  o:[["Text classification","Document extraction","Records Chat","Reconcile Doc Extraction"],["Text classification","Document extraction","Records Chat","Reconcile Doc Extraction"]],a:0,
+  e:["El AI skill de text classification clasifica texto de fuentes HTML o texto plano.","The text classification AI skill classifies text from HTML or plain-text sources."],s:"Appian Docs · AI Use Cases"},
+ {t:"ai",q:["¿Qué componente permite a los usuarios conversar con los datos del data fabric?","Which component lets users chat with data fabric data?"],
+  o:[["a!gridField","Records Chat","a!recordActionField","Process HQ Dashboard"],["a!gridField","Records Chat","a!recordActionField","Process HQ Dashboard"]],a:1,
+  e:["El componente Records Chat permite chatear con los datos del data fabric.","The Records Chat component lets users chat with data fabric data."],s:"Appian Docs · AI Use Cases"},
+ {t:"ai",q:["¿Qué significa que Records Chat y el prompt builder sean «private AI»?","What does it mean that Records Chat and the prompt builder are “private AI”?"],
+  o:[["Que solo los administradores pueden usarlos","Que las entradas y salidas se quedan dentro de los límites de tu sitio Appian Cloud","Que funcionan sin conexión","Que no usan modelos de lenguaje"],["Only admins can use them","Inputs and outputs stay within your Appian Cloud site’s boundaries","They work offline","They don’t use language models"]],a:1,
+  e:["Son IA totalmente privada: las entradas y salidas permanecen dentro de tu sitio Appian Cloud y bajo tu control.","They’re fully private AI: inputs and outputs stay within your Appian Cloud site and under your control."],s:"Appian Docs · AI Use Cases"},
+ {t:"ai",q:["¿En qué escenario encaja mejor document extraction?","Which scenario suits document extraction best?"],
+  o:[["Documentos únicos sin estructura común","Muchos documentos con información parecida, datos estructurados y valores bien etiquetados","Imágenes sin texto","Correos sin adjuntos"],["One-off documents with no common structure","Many documents with similar information, structured data and clearly labeled values","Images without text","Emails without attachments"]],a:1,
+  e:["Está pensado para procesar muchos documentos similares con datos estructurados y valores claramente etiquetados.","It’s designed for many similar documents with structured data and clearly labeled values."],s:"Appian Docs · AI Use Cases"},
+ {t:"ai",q:["¿Por qué facturas y pedidos son buenos candidatos para extracción automática?","Why are invoices and purchase orders good candidates for automatic extraction?"],
+  o:[["Porque siempre vienen en Word","Porque tienen datos semiestructurados con valores etiquetados que se extraen como pares clave-valor","Porque no requieren revisión humana nunca","Porque Appian los clasifica sin entrenamiento"],["They always arrive as Word files","They have semi-structured data with labeled values extracted as key-value pairs","They never need human review","Appian classifies them without training"]],a:1,
+  e:["Contienen datos semiestructurados con valores claramente etiquetados que se extraen fácilmente como pares clave-valor.","They contain semi-structured data with clearly labeled values that extract easily as key-value pairs."],s:"Appian Docs · AI Use Cases"},
+ {t:"ai",q:["¿Qué hace el AI skill de email classification?","What does the email classification AI skill do?"],
+  o:[["Envía correos automáticamente","Identifica el tipo de un correo según ciertos rasgos","Traduce correos al inglés","Extrae adjuntos a una carpeta"],["Sends emails automatically","Identifies an email’s type based on certain traits","Translates emails into English","Extracts attachments to a folder"]],a:1,
+  e:["Usa IA para identificar el tipo de un correo según ciertos rasgos, igual que document classification con documentos.","It uses AI to identify an email’s type based on traits, like document classification does with documents."],s:"Appian Docs · AI Use Cases"}
+]},
+{ id:"b5", title:["Gestión de datos: record types, relaciones y base de datos","Data management: record types, relationships and database"], qs:[
+ {t:"rec",q:["Un alumno puede matricularse en muchos cursos y un curso tiene muchos alumnos. ¿Cómo lo modelas con record types?","A student can enroll in many courses and a course has many students. How do you model this with record types?"],
+  o:[["Con una relación many-to-many directa entre Alumno y Curso","Con dos relaciones one-to-one, una en cada sentido","Guardando en Alumno una lista de ids de curso en un campo de texto","Con un tercer record type de unión (tabla con su clave primaria y las claves de ambos) conectado con relaciones one-to-many y many-to-one"],["With a direct many-to-many relationship between Student and Course","With two one-to-one relationships, one in each direction","Storing a list of course ids in a text field on Student","With a third join record type (table with its own primary key and both keys) connected through one-to-many and many-to-one relationships"]],a:3,
+  e:["Appian no permite relaciones many-to-many directas. Se crea un record type de unión cuya fuente es una tabla con clave primaria y dos campos que apuntan a las claves de los otros dos.","Appian doesn’t allow direct many-to-many relationships. You create a join record type backed by a table with a primary key and two fields referencing the other two keys."],s:"https://docs.appian.com/suite/help/26.6/record-type-relationships.html"},
+ {t:"rec",q:["La tabla de origen tiene una clave primaria compuesta (pais + codigo) y quieres relacionarla con otro record type usando esos dos campos. ¿Qué ocurre?","The source table has a composite primary key (country + code) and you want to relate it to another record type using both fields. What happens?"],
+  o:[["Funciona si ambos campos son de tipo Text","Appian concatena los campos automáticamente","No se puede: una relación usa exactamente un campo común por cada lado; necesitas un campo único, por ejemplo una clave subrogada","Solo funciona con relaciones one-to-one"],["It works if both fields are Text","Appian concatenates the fields automatically","You can’t: a relationship uses exactly one common field on each side; you need a single unique field, such as a surrogate key","It only works with one-to-one relationships"]],a:2,
+  e:["Debes elegir exactamente un campo de cada record type y Appian no admite claves compuestas como campos comunes. El campo del lado «one» debe ser único.","You must pick exactly one field from each record type and Appian doesn’t support composite keys as common fields. The field on the “one” side must be unique."],s:"https://docs.appian.com/suite/help/26.6/record-type-relationships.html"},
+ {t:"rec",q:["Borras un registro padre y sus hijos quedan huérfanos en la base de datos. ¿Qué afirmación es correcta?","You delete a parent record and its children are left orphaned in the database. Which statement is correct?"],
+  o:[["Las relaciones de record type no garantizan integridad referencial; se aplican las restricciones del origen (foreign keys, borrado en cascada)","La relación one-to-many borra siempre los hijos en cascada","Appian bloquea el borrado si hay hijos relacionados","Hay que activar «Enforce integrity» en la relación"],["Record type relationships don’t enforce referential integrity; the source’s constraints apply (foreign keys, cascading deletes)","A one-to-many relationship always cascades the delete to children","Appian blocks the delete when related children exist","You must enable “Enforce integrity” on the relationship"]],a:0,
+  e:["Las relaciones no imponen integridad referencial: la controlan las restricciones definidas en la base de datos, como foreign keys o borrados en cascada.","Relationships don’t enforce referential integrity: the constraints defined in the database, such as foreign keys or cascading deletes, handle it."],s:"https://docs.appian.com/suite/help/26.6/record-type-relationships.html"},
+ {t:"dm",q:["En la tabla Expediente, el estado se guarda como texto libre («Abierto», «abierto», «ABIERTO»...). ¿Qué recomienda Appian?","In the Case table, status is stored as free text (“Open”, “open”, “OPEN”...). What does Appian recommend?"],
+  o:[["Validar el texto con una expresión en cada formulario","Crear un record type de lookup con clave primaria y campo de valor, y relacionarlo con Expediente mediante many-to-one","Guardar los estados en una constante de tipo lista","Crear un campo personalizado que pase el texto a mayúsculas"],["Validate the text with an expression in every form","Create a lookup record type with a primary key and a value field, and relate it to Case through many-to-one","Store the statuses in a list constant","Create a custom field that uppercases the text"]],a:1,
+  e:["Los datos de lookup (estado, prioridad) deben ir en su propio record type, con clave primaria y campo de valor; la relación many-to-one garantiza que todos usan los mismos valores.","Lookup data (status, priority) should be its own record type, with a primary key and a value field; the many-to-one relationship ensures everyone uses the same values."],s:"https://docs.appian.com/suite/help/26.6/data-modeling-with-appian-records.html"},
+ {t:"dm",q:["Cada cliente puede tener varios teléfonos y alguien propone guardarlos separados por comas en un campo. ¿Mejor diseño?","Each customer can have several phone numbers and someone suggests storing them comma-separated in one field. Better design?"],
+  o:[["Un campo Extra Long Text con JSON","Un campo por teléfono (telefono1, telefono2, telefono3)","Una entidad Teléfono separada con foreign key al cliente y relación one-to-many","Guardarlos en un documento adjunto al cliente"],["An Extra Long Text field holding JSON","One field per number (phone1, phone2, phone3)","A separate Phone entity with a foreign key to the customer and a one-to-many relationship","Store them in a document attached to the customer"]],a:2,
+  e:["Si un campo necesita una lista de valores, se crea una entidad aparte. El hijo lleva una foreign key hacia el padre y se modela como one-to-many.","If a field needs a list of values, create a separate entity. The child holds a foreign key to the parent and it’s modeled as one-to-many."],s:"https://docs.appian.com/suite/help/26.6/data-modeling-with-appian-records.html"},
+ {t:"db",q:["Un record type sincronizado usa como origen una vista de base de datos. Un proceso intenta crear registros con Write Records sobre él. ¿Qué pasa?","A synced record type uses a database view as its source. A process tries to create records in it with Write Records. What happens?"],
+  o:[["Funciona, porque la vista se sincroniza igual que una tabla","Funciona solo si la vista tiene clave primaria","No está soportado: Write Records exige que el record type tenga una tabla como origen; hay que escribir en el record type de la tabla subyacente","Funciona, pero sin sincronización automática"],["It works, because the view syncs just like a table","It works only if the view has a primary key","It’s not supported: Write Records requires a record type backed by a table; write to the record type of the underlying table","It works, but without automatic sync"]],a:2,
+  e:["El record type debe usar una tabla como origen: las vistas no están soportadas en Write Records.","The record type must use a database table as its source: views aren’t supported by Write Records."],s:"https://docs.appian.com/suite/help/26.6/Write_Records_Smart_Service.html"},
+ {t:"db",q:["Conectas un record type con optimized data access a una vista en lugar de a una tabla. ¿Qué paso adicional debes hacer?","You connect a record type with optimized data access to a view instead of a table. What extra step must you do?"],
+  o:[["Ninguno, Appian detecta la clave por las restricciones","Seleccionar tú el campo de clave primaria (y, opcionalmente, campos únicos)","Crear un CDT con la anotación @Id","Desactivar la sincronización programada"],["None, Appian detects the key from constraints","Select the primary key field yourself (and, optionally, unique fields)","Create a CDT with the @Id annotation","Turn off scheduled sync"]],a:1,
+  e:["En tablas, Appian asigna la clave primaria y los campos únicos según las restricciones. En vistas debes elegir la clave primaria, que es obligatoria.","For tables, Appian sets the primary key and unique fields from the constraints. For views you must choose the primary key, which is required."],s:"https://docs.appian.com/suite/help/26.7/connect-record-type-to-database.html"},
+ {t:"db",q:["Un proceso actualiza importes con el nodo Execute Stored Procedure sobre la tabla de un record type sincronizado. El grid sigue mostrando los valores antiguos. ¿Qué haces?","A process updates amounts with the Execute Stored Procedure node on the table behind a synced record type. The grid still shows the old values. What do you do?"],
+  o:[["Añadir refreshAlways al grid","Reiniciar los motores de proceso","Cambiar el timeout del procedimiento a 600 segundos","Añadir después un nodo Sync Records con los identificadores modificados"],["Add refreshAlways to the grid","Restart the process engines","Change the procedure timeout to 600 seconds","Add a Sync Records node afterwards with the changed identifiers"]],a:3,
+  e:["Los cambios hechos con Execute Stored Procedure no se sincronizan automáticamente. Usa Sync Records o espera a una sincronización programada o manual.","Changes made with Execute Stored Procedure aren’t synced automatically. Use Sync Records or wait for a scheduled or manual sync."],s:"https://docs.appian.com/suite/help/26.6/Execute_Stored_Procedure_Smart_Service.html"},
+ {t:"db",q:["Un botón de una interfaz debe ejecutar un procedimiento que cambia el estado de varias filas. ¿Cómo lo implementas?","An interface button must run a procedure that changes the status of several rows. How do you implement it?"],
+  o:[["Con a!executeStoredProcedureForQuery() en una local variable","Con a!queryEntity() y un filtro","Con a!executeStoredProcedureOnSave() dentro del saveInto del botón","Con a!executeStoredProcedureForQuery() en el parámetro showWhen"],["With a!executeStoredProcedureForQuery() in a local variable","With a!queryEntity() and a filter","With a!executeStoredProcedureOnSave() inside the button’s saveInto","With a!executeStoredProcedureForQuery() in the showWhen parameter"]],a:2,
+  e:["a!executeStoredProcedureForQuery() no debe usarse con procedimientos que modifican datos porque podría ejecutarse más de una vez. Para modificar, a!executeStoredProcedureOnSave() en un saveInto.","a!executeStoredProcedureForQuery() mustn’t be used with procedures that modify data because it could run more than once. To modify, use a!executeStoredProcedureOnSave() in a saveInto."],s:"https://docs.appian.com/suite/help/26.7/fnc_system_a_executestoredprocedureforquery.html"},
+ {t:"db",q:["Write Records inserta pedidos y un trigger de la base de datos copia cada inserción a la tabla AuditoriaPedido, origen de otro record type sincronizado. Ese record type no muestra las filas nuevas hasta la noche. ¿Por qué y cómo lo resuelves?","Write Records inserts orders and a database trigger copies each insert into the OrderAudit table, the source of another synced record type. That record type doesn’t show the new rows until night. Why, and how do you fix it?"],
+  o:[["Los triggers no están soportados en Appian; hay que eliminarlo","Hay que pasar el record type de auditoría a una vista","Write Records sincroniza todos los record types del mismo data source","Appian solo sincroniza automáticamente lo que escriben ciertos smart services sobre su record type; para la tabla de auditoría usa Sync Records o a!syncRecords() (o syncs incrementales)"],["Triggers aren’t supported in Appian; remove it","You must switch the audit record type to a view","Write Records syncs every record type in the same data source","Appian only auto-syncs what certain smart services write to their own record type; for the audit table use Sync Records or a!syncRecords() (or incremental syncs)"]],a:3,
+  e:["Appian no sincroniza automáticamente cambios hechos por otros smart services, plug-ins o sistemas externos. Usa Sync Records/a!syncRecords() o programa syncs para capturarlos.","Appian doesn’t auto-sync changes made by other smart services, plug-ins or external systems. Use Sync Records/a!syncRecords() or schedule syncs to capture them."],s:"https://docs.appian.com/suite/help/26.6/records-data-sync.html"},
+ {t:"sync",q:["Un DBA borra filas directamente en la tabla. Tras varias syncs incrementales, los registros siguen apareciendo en Appian. ¿Por qué?","A DBA deletes rows directly in the table. After several incremental syncs, the records still appear in Appian. Why?"],
+  o:[["Las syncs incrementales no capturan borrados físicos; hace falta una full sync (o Sync Records con esos identificadores)","Porque falta el campo Last Modified","Porque Appian guarda los borrados 30 días","Porque las syncs incrementales solo funcionan con Salesforce"],["Incremental syncs don’t capture hard deletes; you need a full sync (or Sync Records with those identifiers)","Because the Last Modified field is missing","Because Appian keeps deletions for 30 days","Because incremental syncs only work with Salesforce"]],a:0,
+  e:["Las incrementales capturan datos creados o cambiados desde la última sync, pero no los borrados físicos. La full sync reemplaza todos los datos sincronizados.","Incremental syncs capture data created or changed since the last sync, but not hard deletes. A full sync replaces all synced data."],s:"https://docs.appian.com/suite/help/26.6/records-data-sync.html"},
+ {t:"logs",q:["La full sync nocturna de un record type falla en varios lotes. En Sync History solo ves un error. ¿Dónde está el detalle de cada lote fallido?","A record type’s nightly full sync fails in several batches. Sync History shows only one error. Where is the detail of each failed batch?"],
+  o:[["En el log del servidor de aplicaciones (System Logs)","En el perflog de summary","En el informe de Health Check","En el audit log del Admin Console"],["In the application server log (System Logs)","In the summary perflog","In the Health Check report","In the Admin Console audit log"]],a:0,
+  e:["Sync History muestra solo el último lote fallido; cada fallo de lote se registra en el application server log, accesible desde System Logs.","Sync History shows only the last failed batch; every batch failure is logged in the application server log, available from System Logs."],s:"https://docs.appian.com/suite/help/26.6/Records_Monitoring_Details.html"},
+ {t:"sync",q:["Si la sync nocturna falla, el negocio quiere seguir viendo los datos del día anterior en vez de grids vacíos. ¿Qué configuras?","If the nightly sync fails, the business wants to keep seeing yesterday’s data instead of empty grids. What do you configure?"],
+  o:[["Activar las opciones para saltar syncs fallidas, de modo que el estado sea «Failed and Skipped»","Aumentar el timeout de las consultas a 120 segundos","Cambiar a direct data access","Programar dos full syncs seguidas"],["Enable the options to skip failed syncs, so the status becomes “Failed and Skipped”","Raise the query timeout to 120 seconds","Switch to direct data access","Schedule two full syncs in a row"]],a:0,
+  e:["Con estado «Failed» los datos no están disponibles. Con las opciones de saltar fallos, el record type sigue usando los datos previos («Failed and Skipped»).","With “Failed” status the data is unavailable. With the skip options, the record type keeps using the previous data (“Failed and Skipped”)."],s:"https://docs.appian.com/suite/help/26.6/Records_Monitoring_Details.html"},
+ {t:"pm",q:["Un proceso nocturno debe sincronizar 4.500 registros concretos con Sync Records. ¿Cómo lo diseñas?","A nightly process must sync 4,500 specific records with Sync Records. How do you design it?"],
+  o:[["Un único nodo con los 4.500 identificadores","Un nodo por registro en paralelo","Un bucle que sincroniza en lotes de hasta 1.000 identificadores","No se puede, Sync Records solo admite un identificador"],["One node with all 4,500 identifiers","One node per record in parallel","A loop that syncs in batches of up to 1,000 identifiers","It can’t be done, Sync Records only takes one identifier"]],a:2,
+  e:["Cada petición de sync admite hasta 1.000 identificadores; para más datos se recomienda un bucle en el proceso por lotes de 1.000.","Each sync request takes up to 1,000 identifiers; for more data, use a process loop in batches of 1,000."],s:"https://docs.appian.com/suite/help/26.6/Sync_Records_Smart_Service.html"},
+ {t:"rec",q:["Necesitas un campo personalizado en Pedido que muestre el nombre del cliente relacionado. ¿Qué tipo de custom record field usas?","You need a custom field on Order that shows the related customer’s name. Which type of custom record field do you use?"],
+  o:[["Sync-time, porque admite campos de record types relacionados","Ninguno, hay que crear una vista","Cualquiera, ambos admiten campos relacionados","Real-time, porque admite campos relacionados (hasta cinco niveles) y se calcula al referenciarlo"],["Sync-time, because it supports related record fields","Neither, you must create a view","Either, both support related fields","Real-time, because it supports related fields (up to five levels) and is computed when referenced"]],a:3,
+  e:["Los sync-time solo usan campos del propio record type y se calculan en la sync. Los real-time admiten campos relacionados hasta cinco niveles y se calculan al referenciarlos.","Sync-time fields only use the record type’s own fields and compute at sync. Real-time fields support related fields up to five levels and compute when referenced."],s:"https://docs.appian.com/suite/help/26.9/custom-record-fields.html"}
+]},
+{ id:"b6", title:["Rendimiento y escalabilidad","Performance and scalability"], qs:[
+ {t:"perf",q:["Una interfaz de expedientes llama a rule!calcularRiesgo() (una consulta pesada) directamente en el parámetro value de un componente. Cada vez que el usuario escribe en cualquier campo, la pantalla va lenta. ¿Qué recomienda Appian?","A case interface calls rule!calcularRiesgo() (a heavy query) directly in a component's value parameter. Every time the user types in any field, the screen gets slow. What does Appian recommend?"],
+  o:[["Mover el cálculo a una local variable, que solo se reevalúa cuando cambia una variable que referencia","Envolver la llamada en a!richTextItem() para que se cachee","Subir el valor de refreshInterval del componente","Mover el cálculo a un parámetro de otro componente oculto con showWhen: true"],["Move the computation into a local variable, which is only reevaluated when a variable it references changes","Wrap the call in a!richTextItem() so it is cached","Increase the component's refreshInterval","Move the computation into a parameter of another hidden component with showWhen: true"]],a:0,
+  e:["Cada interacción reevalúa toda la interfaz. Los cálculos costosos van en local variables, no directamente en parámetros de componentes, porque una local variable por defecto solo se reevalúa si cambia otra variable que referencia.","Every interaction reevaluates the whole interface. Expensive computations belong in local variables, not directly in component parameters, because by default a local variable is only reevaluated when another variable it references changes."],s:"https://docs.appian.com/suite/help/26.6/interface-performance.html"},
+ {t:"perf",q:["En un dashboard, local!pedidos y local!incidencias son dos consultas costosas e independientes, pero local!incidencias referencia a local!pedidos solo para leer un valor que no necesita. ¿Qué efecto tiene y qué haces?","On a dashboard, local!pedidos and local!incidencias are two expensive, independent queries, but local!incidencias references local!pedidos only to read a value it doesn't need. What's the effect and what do you do?"],
+  o:[["Ninguno: Appian siempre evalúa las local variables en serie","Mejora el rendimiento porque reutiliza la caché de la primera consulta","Obliga a evaluarlas en serie; quitas la referencia para que se evalúen en paralelo","Provoca un error de dependencia circular en tiempo de diseño"],["None: Appian always evaluates local variables serially","It improves performance by reusing the first query's cache","It forces serial evaluation; you remove the reference so they evaluate in parallel","It raises a circular dependency error at design time"]],a:2,
+  e:["Las local variables independientes se evalúan en paralelo; si una referencia a otra, Appian necesita primero el valor de la referenciada y se evalúan en serie. Evita dependencias innecesarias entre consultas costosas.","Independent local variables evaluate in parallel; if one references another, Appian needs the referenced value first and they evaluate serially. Avoid unnecessary dependencies between expensive queries."],s:"https://docs.appian.com/suite/help/26.6/interface-performance.html"},
+ {t:"ui",q:["Una página de resumen muestra datos de un sistema externo que tarda unos 3 segundos en responder, y toda la página espera a esa llamada. ¿Cómo mejoras la experiencia del usuario?","A summary page shows data from an external system that takes about 3 seconds to respond, and the whole page waits for that call. How do you improve the user experience?"],
+  o:[["Mover la llamada a un parámetro de componente para que se evalúe al final","Ocultar la sección con showWhen hasta que el usuario pulse un botón y recargar toda la interfaz","Repetir la llamada con a!refreshVariable(refreshAlways: true)","Cargar esos datos de forma asíncrona con a!asyncVariable(): el resto de la página se muestra y esa parte enseña un placeholder mientras carga"],["Move the call to a component parameter so it evaluates last","Hide the section with showWhen until the user clicks a button and reload the whole interface","Repeat the call with a!refreshVariable(refreshAlways: true)","Load that data asynchronously with a!asyncVariable(): the rest of the page renders and that part shows a placeholder while loading"]],a:3,
+  e:["La carga asíncrona es una de las formas más eficaces de mejorar el rendimiento percibido. Con a!asyncVariable() (o loadDataAsync en grids, charts y KPIs de solo lectura) los componentes muestran placeholders mientras llegan los datos lentos.","Asynchronous loading is one of the most effective ways to improve perceived performance. With a!asyncVariable() (or loadDataAsync on read-only grids, charts and KPIs) components show placeholders while slow data arrives."],s:"https://docs.appian.com/suite/help/26.9/async_loading.html"},
+ {t:"ui",q:["Un compañero propone convertir en asíncronas las 12 consultas de una interfaz, incluidas varias que tardan unos 40 ms. ¿Qué indica la guía de Appian?","A teammate proposes making all 12 queries in an interface asynchronous, including several that take about 40 ms. What does Appian's guidance say?"],
+  o:[["Hacerlas asíncronas solo si superan los 5 segundos","Reservarlo para datos lentos (orientativamente, más de 500 ms), empezar por los más lentos y no pasar de 7 variables asíncronas por interfaz","Es lo recomendado: cuantas más variables asíncronas, más rápida la interfaz","Solo se puede usar una variable asíncrona por interfaz"],["Make them async only if they exceed 5 seconds","Reserve it for slow data (as a guideline, over 500 ms), start with the slowest, and use no more than 7 async variables per interface","That's recommended: the more async variables, the faster the interface","Only one async variable is allowed per interface"]],a:1,
+  e:["Las consultas rápidas no deben ser asíncronas: el parpadeo del placeholder resulta peor que una carga breve. Una guía habitual son datos de más de 500 ms, y Appian recomienda no superar 7 variables asíncronas por interfaz por la carga en el servidor.","Fast queries shouldn't be async: the placeholder flash feels worse than a brief load. A common guideline is data over 500 ms, and Appian recommends no more than 7 async variables per interface because of server load."],s:"https://docs.appian.com/suite/help/26.9/async_loading.html"},
+ {t:"perf",q:["Has movido una consulta lenta a a!asyncVariable(). En Performance Details aparece con «<1 ms», pero los usuarios siguen esperando a que salga el grid. ¿Cómo interpretas el dato?","You moved a slow query to a!asyncVariable(). Performance Details shows it as \"<1 ms\", but users still wait for the grid to appear. How do you read this?"],
+  o:[["Performance Details no mide bien las variables asíncronas (siempre muestran <1 ms); prueba con volúmenes de datos parecidos a producción","La consulta ya está optimizada y el problema está en el navegador","La variable asíncrona se ha cacheado y no vuelve a ejecutar la consulta","Hay que activar los trace logs para que Performance Details mida la variable"],["Performance Details doesn't measure async variables accurately (they always show <1 ms); test with production-like data volumes","The query is already optimized and the problem is in the browser","The async variable was cached and never re-runs the query","You must enable trace logs so Performance Details measures the variable"]],a:0,
+  e:["La documentación de carga asíncrona avisa de que Performance Details no mide con precisión las variables asíncronas, que siempre aparecen con <1 ms; por eso hay que probar los componentes lentos con datos de volumen real.","The async loading docs warn that Performance Details doesn't accurately measure async variables, which always show <1 ms; so test slow components with production-like data volumes."],s:"https://docs.appian.com/suite/help/26.9/async_loading.html"},
+ {t:"perf",q:["El live performance view de una interfaz indica 400 ms de evaluación, pero el usuario tarda casi 2 segundos en ver la página. ¿Qué explica la diferencia?","An interface's live performance view shows 400 ms of evaluation, but the user takes almost 2 seconds to see the page. What explains the difference?"],
+  o:[["Performance Details solo mide la primera regla de la interfaz","Los tiempos se muestran en décimas de segundo, no en milisegundos","El tiempo medido excluye la transmisión por red y el renderizado en el cliente, así que es menor que la carga que percibe el usuario","Performance Details solo mide interfaces publicadas en un site"],["Performance Details only measures the interface's first rule","Times are shown in tenths of a second, not milliseconds","The measured time excludes network transmission and client rendering, so it's shorter than the load time users perceive","Performance Details only measures interfaces published in a site"]],a:2,
+  e:["Los tiempos de Performance Details no incluyen la red ni el renderizado en el cliente; en interfaces y record types el tiempo medido es menor que la carga que ve el usuario.","Performance Details times exclude network transmission and client rendering; for interfaces and record types, the measured time is shorter than the load the user sees."],s:"https://docs.appian.com/suite/help/26.4/Performance_View.html"},
+ {t:"pm",q:["Un proceso nocturno lanza 500 procesos hijos con un nodo Subprocess asíncrono configurado como MNI, y la design guidance lo marca. ¿Qué cambio recomienda Appian?","A nightly process launches 500 child processes with an asynchronous Subprocess node configured as MNI, and design guidance flags it. What change does Appian recommend?"],
+  o:[["Convertir el subproceso en síncrono para que se ejecute más rápido","Usar el smart service Start Process, que reparte la carga entre los execution engines","Usar un evento Send Message sin proceso destino","Añadir activity chaining a todas las instancias"],["Make the subprocess synchronous so it runs faster","Use the Start Process smart service, which load-balances across execution engines","Use a Send Message event with no target process","Add activity chaining to every instance"]],a:1,
+  e:["Lanzar muchos procesos con Subprocess puede degradar el rendimiento, porque el subproceso se queda en el mismo motor que el padre. Start Process reparte los procesos entre motores y es compatible con autoscale.","Launching many processes with Subprocess can slow performance, because the subprocess stays on the parent's engine. Start Process balances processes across engines and is autoscale-compatible."],s:"https://docs.appian.com/suite/help/26.7/appian-recommendations.html"},
+ {t:"pm",q:["Un nodo unattended con MNI recibe activity chaining para que el usuario vea enseguida el siguiente formulario. ¿Qué riesgo señala la design guidance?","An unattended MNI node receives activity chaining so the user sees the next form right away. What risk does design guidance point out?"],
+  o:[["Que las instancias del MNI se ejecuten en motores distintos","Que el proceso no se pueda archivar","Ninguno: el chaining siempre mejora el rendimiento","Que es más probable superar el límite de 50 nodos encadenados; conviene rediseñar en bulk o de forma asíncrona"],["That the MNI instances run on different engines","That the process can't be archived","None: chaining always improves performance","That it's more likely to exceed the 50-node chaining limit; redesign with bulk or asynchronous processing"]],a:3,
+  e:["El activity chaining a través de MNI multiplica los nodos encadenados y hace más probable superar el límite de 50. La guía recomienda operaciones en bulk o diseño asíncrono.","Chaining through MNI multiplies the chained nodes and makes exceeding the 50-node limit more likely. The guidance recommends bulk operations or an asynchronous design."],s:"https://docs.appian.com/suite/help/26.7/appian-recommendations.html"},
+ {t:"mem",q:["La design guidance avisa de que un process model tiene 140 process variables. Muchas solo se usan como entrada de un único nodo. ¿Qué recomienda Appian?","Design guidance warns that a process model has 140 process variables. Many are only used as input to a single node. What does Appian recommend?"],
+  o:[["Marcarlas como Hidden para que no ocupen memoria","Convertirlas en activity class parameters o dividir el proceso, porque más de 100 process variables aumentan el consumo de memoria","Agruparlas todas en un único CDT pasado por referencia","Ignorarlo: el aviso solo afecta a la legibilidad"],["Mark them Hidden so they don't use memory","Convert them to activity class parameters or split the process, because more than 100 process variables raise memory consumption","Group them all in one CDT passed by reference","Ignore it: the warning only affects readability"]],a:1,
+  e:["Más de 100 process variables complican el mantenimiento y suben el consumo de memoria. Appian sugiere pasarlas a activity class parameters o dividir el proceso. Hidden solo las oculta del historial y los informes.","More than 100 process variables hurt maintainability and raise memory use. Appian suggests turning them into activity class parameters or splitting the process. Hidden only hides them from history and reports."],s:"https://docs.appian.com/suite/help/26.7/appian-recommendations.html"},
+ {t:"mon",q:["El equipo de operaciones sospecha que un process model está saturando la memoria del entorno. ¿Dónde lo compruebas en Appian Designer y cuándo se marca como High?","The operations team suspects a process model is saturating the environment's memory. Where do you check it in Appian Designer and when is it marked High?"],
+  o:[["En el Monitor view, pestaña Process Model Metrics; se marca High cuando la memoria total de sus instancias activas supera 1.000.000 AMU","En el Admin Console, pestaña Memory; se marca High por encima de 100 MB","En la pestaña Process Activity; se marca High con más de 10.000 instancias","En el informe de Health Check, que se actualiza en tiempo real"],["In the Monitor view, Process Model Metrics tab; it's marked High when its active instances' total memory exceeds 1,000,000 AMU","In the Admin Console, Memory tab; it's marked High above 100 MB","In the Process Activity tab; it's marked High above 10,000 instances","In the Health Check report, which updates in real time"]],a:0,
+  e:["Process Model Metrics ordena los process models por memoria total (en AMU) y los clasifica en Low (<100.000), Medium (100.000–1.000.000) y High (>1.000.000). El cálculo se hace en segundo plano y no es en tiempo real.","Process Model Metrics sorts process models by total memory (in AMU) and rates them Low (<100,000), Medium (100,000–1,000,000) and High (>1,000,000). The calculation runs in the background and isn't real-time."],s:"https://docs.appian.com/suite/help/26.4/monitoring_view.html"},
+ {t:"mon",q:["Los usuarios se quejan de que la vista de un record a veces tarda mucho, pero no sabes cuándo ni a quién le pasa. ¿Qué herramienta del Monitor view te da esa información?","Users complain that a record view is sometimes very slow, but you don't know when or who is affected. Which Monitor view tool gives you that information?"],
+  o:[["Record Sync Status, que muestra la duración de cada sync","Process Activity, filtrando por procesos con errores","Record Response Times, que muestra los 10 tiempos de respuesta más lentos de cada lista o vista de record en los últimos 30 días, con usuario y momento","El Design Error Log, que registra cada carga lenta"],["Record Sync Status, which shows each sync's duration","Process Activity, filtering by processes with errors","Record Response Times, which shows the 10 slowest response times for each record list or view over the last 30 days, with user and time","The Design Error Log, which records every slow load"]],a:2,
+  e:["Record Response Times lista los 10 tiempos más lentos por lista o vista de record en los últimos 30 días, con usuario y fecha. Tiempo total = Evaluation Metrics + Save Metrics.","Record Response Times lists the 10 slowest times per record list or view over the last 30 days, with user and date. Total response time = Evaluation Metrics + Save Metrics."],s:"https://docs.appian.com/suite/help/26.4/monitoring_view.html"},
+ {t:"logs",q:["Un entorno self-managed tiene picos de lentitud en procesos que escriben en un data store. Quieres ver solo las operaciones de base de datos lentas. ¿Qué log revisas?","A self-managed environment has slowdowns in processes that write to a data store. You want to see only the slow database operations. Which log do you check?"],
+  o:[["perf_monitor_rdbms_slow.csv, que duplica las operaciones de más de 3 segundos (umbral ajustable con conf.monitoring.rdbms.SLOW_QUERY_THRESHOLD_MS)","login-audit.csv, que registra la duración de cada sesión","design_object_diffs_details, que mide las comparaciones de objetos","engine_summary.csv, que lista cada consulta SQL"],["perf_monitor_rdbms_slow.csv, which duplicates operations over 3 seconds (threshold adjustable with conf.monitoring.rdbms.SLOW_QUERY_THRESHOLD_MS)","login-audit.csv, which records each session's duration","design_object_diffs_details, which measures object comparisons","engine_summary.csv, which lists every SQL query"]],a:0,
+  e:["Para identificar operaciones lentas, Appian crea un log aparte con las mismas columnas que perf_monitor_rdbms y solo las operaciones de más de 3 segundos. En self-managed el umbral se cambia con esa propiedad.","To spot slow operations, Appian writes a separate log with the same columns as perf_monitor_rdbms and only operations over 3 seconds. On self-managed sites the threshold is changed with that property."],s:"https://docs.appian.com/suite/help/26.10/Logging.html"},
+ {t:"logs",q:["La CPU de los execution engines está alta y necesitas saber qué process models y qué instancias concretas consumen más tiempo. ¿Qué logs usas?","Execution engine CPU is high and you need to know which process models and which specific instances consume the most time. Which logs do you use?"],
+  o:[["sail_details y sail_summary","top_models_by_time y top_processes_by_time, escritos por motor en lotes de 5 minutos con el tiempo de CPU consumido","web_api_details y web_api_summary","El log de Sync History del record type"],["sail_details and sail_summary","top_models_by_time and top_processes_by_time, written per engine in 5-minute batches with the CPU time consumed","web_api_details and web_api_summary","The record type's Sync History log"]],a:1,
+  e:["top_models_by_time_<ENGINE>_<TIMESTAMP>.csv y top_processes_by_time_... se escriben cada 5 minutos. El primer ordinal de cada lote es el que más CPU consumió, con su tiempo y su porcentaje del intervalo.","top_models_by_time_<ENGINE>_<TIMESTAMP>.csv and top_processes_by_time_... are written every 5 minutes. The first ordinal in each batch is the one that used the most CPU, with its time and share of the interval."],s:"https://docs.appian.com/suite/help/26.10/Logging.html"},
+ {t:"test",q:["Antes de una release importante, el negocio pide comprobar que la aplicación aguanta el pico de usuarios de fin de mes. ¿Qué enfoque encaja con la guía de testing de Appian?","Before a major release, the business wants to confirm the application handles the month-end user peak. Which approach fits Appian's testing guidance?"],
+  o:[["Pruebas de UI con FitNesse for Appian, que simulan la carga","Revisar el informe de Health Check, que hace pruebas de carga","Pruebas de rendimiento planificadas desde el principio, con uso parecido al de producción o pico, automatizando la carga con herramientas como JMeter o Locust","Ejecutar los test cases de las expression rules en bucle"],["UI tests with FitNesse for Appian, which simulate load","Review the Health Check report, which runs load tests","Performance tests planned early, with production-like or peak usage, automating load with tools such as JMeter or Locust","Run the expression rules' test cases in a loop"]],a:2,
+  e:["La guía de testing pide planificar pronto las pruebas de rendimiento y hacerlas antes de releases importantes, con uso parecido al de producción o al pico. Menciona JMeter y Locust para automatizar la carga; FitNesse, Cucumber y Selenium son para pruebas de UI.","The testing guidance says to plan performance testing early and run it before major releases, with production-like or peak usage. It names JMeter and Locust to automate load; FitNesse, Cucumber and Selenium are for UI testing."],s:"https://docs.appian.com/suite/help/26.5/testing-applications.html"},
+ {t:"test",q:["Vas a modificar una expression rule que usan muchas interfaces. ¿Cuál es la mejor forma de asegurar que el cambio no rompe nada antes de desplegarlo?","You're about to change an expression rule used by many interfaces. What's the best way to make sure the change doesn't break anything before deploying it?"],
+  o:[["Abrir cada interfaz a mano y revisar que se ve bien","Desplegar en producción y revisar el Design Error Log","Duplicar la regla y cambiar solo la copia","Ejecutar sus test cases guardados (en bloque desde Manage Test Cases o automatizados, por ejemplo con Jenkins) como pruebas de regresión"],["Open every interface manually and check it looks fine","Deploy to production and check the Design Error Log","Duplicate the rule and change only the copy","Run its saved test cases (in bulk from Manage Test Cases or automated, for example with Jenkins) as regression tests"]],a:3,
+  e:["Las expression rules guardan test cases reutilizables para regresión. Se pueden ejecutar en bloque desde Manage Test Cases o automatizar con Jenkins, y ejecutarlos antes de desplegar es la mejor forma de asegurar que los cambios no rompen reglas existentes.","Expression rules store reusable test cases for regression. They can be run in bulk from Manage Test Cases or automated with Jenkins, and running them before deploying is the best way to ensure changes don't break existing rules."],s:"https://docs.appian.com/suite/help/26.5/testing-applications.html"}
+]}
+];
+const TARGET_BLOCKS = 30;   // tamaño objetivo de la serie; el examen final exige superarlos todos
+const EXAM = { size:50, minutes:60, pass:0.6 };
+
+/* ============ ALMACENAMIENTO LOCAL Y COOKIES ============ */
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem("apq."+k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem("apq."+k, JSON.stringify(v)); }catch(e){} }
+};
+function getCookie(n){ const m = document.cookie.match(new RegExp("(?:^|; )"+n+"=([^;]*)")); return m ? decodeURIComponent(m[1]) : null; }
+function setCookie(n, v){ document.cookie = n+"="+encodeURIComponent(v)+"; Max-Age=63072000; Path=/; SameSite=Lax"+(location.protocol==="https:"?"; Secure":""); }
+let uid = getCookie("apq_uid") || LS.get("uid", null);
+if(!uid || !/^[A-Za-z0-9-]{8,64}$/.test(uid)){
+  uid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(16)+"-"+Math.random().toString(16).slice(2,14));
+}
+setCookie("apq_uid", uid); LS.set("uid", uid);
+const state = { alias: getCookie("apq_alias") || LS.get("alias",""), best: LS.get("best",{}), examBest: LS.get("examBest",null), lang: LS.get("lang","es"), view:"home" };
+function saveAlias(v){ state.alias = v; LS.set("alias", v); setCookie("apq_alias", v); }
+if(state.alias) saveAlias(state.alias);
+let startDay = getCookie("apq_start") || LS.get("start", null);
+if(!/^\d{4}-\d{2}-\d{2}$/.test(startDay||"")) startDay = localISO();
+setCookie("apq_start", startDay); LS.set("start", startDay);
+
+/* ============ DESBLOQUEO Y PUBLICACIÓN DIARIA ============ */
+function localISO(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function fmtDate(iso){ const [y,m,d]=iso.split("-"); return d+"/"+m; }
+const START_BLOCKS = 4;   // bloques activos el primer día; después se activa uno más cada día
+function dayDiff(a, b){ const [y1,m1,d1]=a.split("-").map(Number), [y2,m2,d2]=b.split("-").map(Number); return Math.round((Date.UTC(y2,m2-1,d2)-Date.UTC(y1,m1-1,d1))/86400000); }
+const userWindow = () => START_BLOCKS + Math.max(0, dayDiff(startDay, localISO()));
+function unlockISO(i){ const [y,m,d]=startDay.split("-").map(Number); return new Date(Date.UTC(y,m-1,d+Math.max(0,i-START_BLOCKS+1))).toISOString().slice(0,10); }
+const released = (b, i) => i < userWindow() && (!b.releaseOn || b.releaseOn <= localISO());
+const passed = b => state.best[b.id]!=null && state.best[b.id]/b.qs.length >= 0.6;
+function status(i){
+  const b = BLOCKS[i];
+  if(!released(b,i)) return "soon";
+  if(passed(b)) return "passed";
+  if(i===0 || passed(BLOCKS[i-1])) return "open";
+  return "locked";
+}
+const canPlay = i => { const s = status(i); return s==="open" || s==="passed"; };
+const passedCount = () => BLOCKS.filter((b,i)=>released(b,i) && passed(b)).length;
+const examUnlocked = () => BLOCKS.length >= TARGET_BLOCKS && BLOCKS.every((b,i)=>released(b,i) && passed(b));
+
+/* ============ RANKING (servidor en Vercel) ============ */
+const shared = { rows:null, status:"idle" };
+async function loadRanking(){
+  shared.status = shared.rows ? "on" : "loading";
+  if(state.view==="rank") render();
+  try{
+    const r = await fetch("/api/ranking", { cache:"no-store", credentials:"same-origin" });
+    if(!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    shared.rows = Array.isArray(j.rows) ? j.rows : [];
+    shared.status = "on";
+  }catch(e){ shared.status = "off"; }
+  if(state.view==="rank") render();
+}
+async function pushScore(){
+  if(!state.alias) return;
+  try{
+    await fetch("/api/ranking", { method:"POST", credentials:"same-origin", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ uid, alias: state.alias, best: state.best, exam: state.examBest }) });
+  }catch(e){}
+}
+
+/* ============ UTILIDADES ============ */
+const $ = s => document.querySelector(s);
+const L = () => state.lang==="en" ? 1 : 0;
+function el(tag, attrs={}, ...kids){
+  const n = document.createElement(tag);
+  for(const [k,v] of Object.entries(attrs)){
+    if(v===false || v==null) continue;
+    if(k==="class") n.className=v; else if(k.startsWith("on")) n.addEventListener(k.slice(2),v); else n.setAttribute(k, v===true ? "" : v);
+  }
+  for(const k of kids){ if(k==null) continue; n.append(k.nodeType ? k : document.createTextNode(k)); }
+  return n;
+}
+function setLang(l){
+  state.lang=l; LS.set("lang",l);
+  $("#lang-es").setAttribute("aria-pressed", l==="es"); $("#lang-en").setAttribute("aria-pressed", l==="en");
+  if(quiz && state.view==="quiz"){ quiz.qLang = l; rerenderQuiz(); } else render();
+}
+$("#lang-es").onclick=()=>setLang("es"); $("#lang-en").onclick=()=>setLang("en");
+$("#lang-es").setAttribute("aria-pressed", state.lang==="es"); $("#lang-en").setAttribute("aria-pressed", state.lang==="en");
+$("#tab-blocks").onclick=()=>{ state.view="home"; render(); };
+$("#tab-list").onclick=()=>{ state.view="list"; render(); };
+$("#tab-rank").onclick=()=>{ state.view="rank"; render(); loadRanking(); };
+
+function statusText(i){
+  const s = status(i), b = BLOCKS[i];
+  if(s==="passed") return "Superado";
+  if(s==="open") return state.best[b.id]!=null ? "Pendiente de superar" : "Disponible";
+  if(s==="locked") return `Bloqueado: supera el bloque ${i}`;
+  return `Se activa el ${fmtDate(i < userWindow() && b.releaseOn ? b.releaseOn : unlockISO(i))}`;
+}
+
+/* ============ PANTALLAS ============ */
+function render(){
+  const app = $("#app"); app.innerHTML="";
+  $("#hello").textContent = state.alias ? "Hola, "+state.alias : "Preparación ACD201";
+  $("#tabs").classList.toggle("hidden", !state.alias || state.view==="quiz" || state.view==="result" || state.view==="examResult");
+  $("#tab-blocks").setAttribute("aria-current", state.view==="home" ? "page" : "false");
+  $("#tab-list").setAttribute("aria-current", state.view==="list" ? "page" : "false");
+  $("#tab-rank").setAttribute("aria-current", state.view==="rank" ? "page" : "false");
+  if(!state.alias) return renderWelcome(app);
+  if(state.view==="rank") return renderRank(app);
+  if(state.view==="list") return renderList(app);
+  if(state.view==="result") return renderResult(app);
+  if(state.view==="examResult") return renderExamResult(app);
+  return renderHome(app);
+}
+
+function renderWelcome(app){
+  const input = el("input",{id:"alias",type:"text",maxlength:"24",autocomplete:"nickname",placeholder:"Por ejemplo, Marta_dev"});
+  const err = el("p",{class:"err",role:"alert"});
+  const go = ()=>{
+    const v = input.value.trim();
+    if(v.length<2){ err.textContent="Escribe un nombre de al menos 2 caracteres."; input.focus(); return; }
+    saveAlias(v.slice(0,24)); state.view="home"; render(); pushScore();
+  };
+  input.addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
+  app.append(
+    el("h1",{},"Practica para la certificación Senior Developer de Appian"),
+    el("p",{class:"lead"},"Bloques de preguntas tipo test basados en la documentación oficial de Appian y en Appian Community. Empiezas con 4 bloques activos y cada día se activa uno nuevo. Mantén pulsada una pregunta para verla en inglés."),
+    el("div",{class:"field"}, el("label",{for:"alias"},"¿Cómo quieres aparecer en el ranking?"), input),
+    err,
+    el("button",{class:"btn",type:"button",onclick:go},"Empezar"),
+    el("p",{class:"hint",style:"margin-top:12px"},"Tu nombre se guarda en una cookie de este dispositivo para reconocerte en la próxima visita.")
+  );
+  setTimeout(()=>input.focus(),50);
+}
+
+function renderHome(app){
+  const avail = BLOCKS.filter(released);
+  const nPassed = avail.filter(passed).length;
+  const cur = BLOCKS.findIndex((b,i)=>status(i)==="open");
+  app.append(el("h1",{},"Tu ruta"), el("p",{class:"lead"}, `Has superado ${nPassed} de ${avail.length} bloques disponibles. Cada bloque se supera con un 60% y desbloquea el siguiente.`));
+  if(cur>=0){
+    const b = BLOCKS[cur];
+    app.append(el("div",{class:"cur-card"},
+      el("div",{class:"k"}, `Bloque ${cur+1}`),
+      el("div",{class:"t"}, b.title[L()]),
+      el("p",{}, state.best[b.id]!=null ? `Tu mejor nota: ${state.best[b.id]}/${b.qs.length}. Necesitas ${Math.ceil(b.qs.length*0.6)} aciertos.` : `${b.qs.length} preguntas. Necesitas ${Math.ceil(b.qs.length*0.6)} aciertos para superarlo.`),
+      el("button",{class:"btn",type:"button",onclick:()=>startQuiz(cur)}, state.best[b.id]!=null ? `Volver a realizar el bloque ${cur+1}` : `Empezar el bloque ${cur+1}`)));
+  } else {
+    const nx = BLOCKS.findIndex((b,i)=>!released(b,i));
+    app.append(el("div",{class:"note"}, nx>=0 ? `Has superado todos tus bloques activos. El siguiente se activa el ${fmtDate(unlockISO(nx))}.` : (BLOCKS.length<TARGET_BLOCKS ? "Has superado todos los bloques disponibles. Mañana se publica el siguiente." : "Has superado todos los bloques.")));
+  }
+  const ul = el("ul",{class:"blocks"});
+  BLOCKS.forEach((b,i)=>{
+    const s = status(i), best = state.best[b.id];
+    const pct = best!=null ? Math.round(best/b.qs.length*100) : null;
+    ul.append(el("li",{class: s==="passed"?"done":s},
+      el("button",{type:"button",disabled:!canPlay(i),onclick:()=>startQuiz(i)},
+        el("span",{class:"bnum","aria-hidden":"true"}, s==="locked"||s==="soon" ? "🔒" : String(i+1)),
+        el("span",{}, el("div",{class:"btitle"}, s==="soon" ? `Bloque ${i+1}` : b.title[L()]), el("div",{class:"st "+s}, statusText(i))),
+        el("span",{class:"bscore "+(pct==null?"":pct>=60?"pass":"fail")}, pct==null ? "" : `${best}/${b.qs.length}`)
+      )));
+  });
+  if(BLOCKS.length<TARGET_BLOCKS) ul.append(el("li",{class:"soon"}, el("button",{type:"button",disabled:true}, el("span",{class:"bnum","aria-hidden":"true"},"🔒"), el("span",{}, el("div",{class:"btitle"},`Bloque ${BLOCKS.length+1}`), el("div",{class:"st soon"},"Se publica mañana")), el("span",{}))));
+  app.append(ul);
+  app.append(examCard());
+  app.append(el("button",{class:"backlink",type:"button",style:"margin-top:20px",onclick:()=>{
+    const v = prompt("Nuevo nombre para el ranking:", state.alias);
+    if(v && v.trim().length>=2){ saveAlias(v.trim().slice(0,24)); render(); pushScore(); }
+  }},"Cambiar mi nombre"));
+}
+
+function renderList(app){
+  app.append(el("h1",{},"Todos los bloques"), el("p",{class:"lead"},"Puedes repetir cualquier bloque que ya hayas superado. Los siguientes se desbloquean al superar el anterior."));
+  const box = el("div",{style:"border-top:1px solid var(--line)"});
+  BLOCKS.forEach((b,i)=>{
+    const s = status(i), best = state.best[b.id];
+    const n = b.qs.length;
+    const topics = [...new Set(b.qs.map(q=>T[q.t][L()]))].join(", ");
+    let action;
+    if(s==="passed") action = el("button",{class:"mini",type:"button",onclick:()=>startQuiz(i)},"Volver a realizar");
+    else if(s==="open") action = el("button",{class:"mini pri",type:"button",onclick:()=>startQuiz(i)}, best!=null ? "Volver a realizar" : "Realizar");
+    else action = el("button",{class:"mini",type:"button",disabled:true},"🔒");
+    box.append(el("div",{class:"lrow"},
+      el("div",{},
+        el("div",{class:"btitle"}, `${i+1}. ` + (s==="soon" ? "Próximo bloque" : b.title[L()])),
+        el("div",{class:"bmeta"}, s==="soon" ? "" : `${n} preguntas · ${topics}`),
+        el("div",{class:"st "+s}, statusText(i) + (best!=null ? ` · mejor nota ${best}/${n}` : ""))),
+      action));
+  });
+  if(BLOCKS.length<TARGET_BLOCKS) box.append(el("div",{class:"lrow"}, el("div",{}, el("div",{class:"btitle"},`${BLOCKS.length+1}. Próximo bloque`), el("div",{class:"st soon"},`Se publica mañana · serie de ${TARGET_BLOCKS} bloques`)), el("button",{class:"mini",type:"button",disabled:true},"🔒")));
+  app.append(box);
+  app.append(examCard());
+}
+
+/* ---- Test ---- */
+let quiz = null;
+function startQuiz(i){
+  if(!canPlay(i)) return;
+  const n = BLOCKS[i].qs.length, lastAll = LS.get("lastOrder",{}), prev = lastAll[BLOCKS[i].id];
+  let order = perm(n), tries = 0;
+  while(n>1 && prev && order.join(",")===prev && tries++<20) order = perm(n);
+  lastAll[BLOCKS[i].id] = order.join(","); LS.set("lastOrder", lastAll);
+  quiz = { bi:i, qi:0, sel:-1, checked:false, results:[], order, opts: order.map(()=>perm(4)), qLang: state.lang, from: state.view };
+  state.view="quiz"; render(); renderQuestion(); window.scrollTo(0,0);
+}
+function renderQuestion(){
+  const app = $("#app"); app.innerHTML="";
+  const b = BLOCKS[quiz.bi], q = b.qs[quiz.order[quiz.qi]], l = quiz.qLang==="en"?1:0;
+
+  const flow = el("div",{class:"flow","aria-hidden":"true"}, el("span",{class:"ev"}));
+  b.qs.forEach((_,k)=>{
+    flow.append(el("span",{class:"ln"+(k<=quiz.qi?" past":"")}));
+    const r = quiz.results[k];
+    flow.append(el("span",{class:"nd"+(k===quiz.qi&&!quiz.checked?" cur":"")+(r===true?" ok":r===false?" ko":"")}));
+  });
+  flow.append(el("span",{class:"ln"}), el("span",{class:"ev end"}));
+
+  const card = el("section",{class:"qcard","aria-live":"polite"},
+    el("div",{class:"qmeta"}, el("span",{class:"tag"}, T[q.t][l]), el("span",{}, `${quiz.qi+1} de ${b.qs.length}`)),
+    el("p",{class:"qtext"}, q.q[l]),
+    el("div",{class:"qlang"}, "Toca una respuesta para corregirla al instante. Mantén pulsada la pregunta para verla en ", el("b",{}, l?"español":"inglés"), ".")
+  );
+  const opts = el("div",{class:"opts",role:"radiogroup","aria-label":"Respuestas"});
+  quiz.opts[quiz.qi].forEach((k,j)=>{ const txt = q.o[l][k];
+    let cls = "opt";
+    if(quiz.checked){ if(k===q.a) cls+=" ok"; else if(k===quiz.sel) cls+=" ko"; }
+    opts.append(el("button",{type:"button",class:cls,role:"radio","aria-checked":String(k===quiz.sel),onclick:()=>{
+      if(lp.fired){ lp.fired=false; return; }
+      if(quiz.checked) return;
+      quiz.sel=k; quiz.checked=true; quiz.results[quiz.qi] = k===q.a; renderQuestion();
+      const f=document.querySelector(".fb"); if(f) f.scrollIntoView({block:"nearest",behavior:"smooth"});
+    }}, el("span",{class:"k"}, String.fromCharCode(65+j)), el("span",{}, txt)));
+  });
+  card.append(opts);
+  attachLongPress(card);
+
+  let fb = null;
+  if(quiz.checked){
+    const ok = quiz.sel===q.a;
+    fb = el("div",{class:"fb "+(ok?"ok":"ko"),role:"status"}, el("strong",{}, ok?(l?"Correct":"Correcto"):(l?"Incorrect. Right answer: ":"Incorrecto. La correcta es la ")+(ok?"":String.fromCharCode(65+quiz.opts[quiz.qi].indexOf(q.a)))), q.e[l], el("span",{class:"src"}, (l?"Source: ":"Fuente: ")+q.s));
+  }
+  const last = quiz.qi===b.qs.length-1;
+  const main = !quiz.checked ? null : el("button",{class:"btn",type:"button",onclick:()=>{
+    if(last){ finishQuiz(); return; }
+    quiz.qi++; quiz.sel=-1; quiz.checked=false; quiz.qLang=state.lang; renderQuestion(); window.scrollTo(0,0);
+  }}, last ? "Ver resultado" : "Siguiente pregunta");
+
+  app.append(...[
+    el("button",{class:"backlink",type:"button",onclick:()=>{ if(confirm("¿Salir del bloque? Se perderá el progreso de este intento.")){ state.view=quiz.from||"home"; quiz=null; render(); } }},"Salir del bloque"),
+    flow, card, fb,
+    main ? el("div",{class:"actions"}, main) : null
+  ].filter(Boolean));
+}
+
+/* Pulsación larga: alterna español / inglés solo en la pregunta actual */
+const lp = { timer:null, fired:false, x:0, y:0 };
+function attachLongPress(node){
+  node.addEventListener("contextmenu", e=>e.preventDefault());
+  node.addEventListener("pointerdown", e=>{
+    lp.fired=false; lp.x=e.clientX; lp.y=e.clientY;
+    clearTimeout(lp.timer);
+    lp.timer = setTimeout(()=>{
+      lp.fired = true;
+      quiz.qLang = quiz.qLang==="en" ? "es" : "en";
+      if(navigator.vibrate) try{ navigator.vibrate(15); }catch(_){}
+      rerenderQuiz();
+      const c = document.querySelector(".qcard"); if(c) c.classList.add("flash");
+    }, 550);
+  });
+  const cancel = ()=>clearTimeout(lp.timer);
+  node.addEventListener("pointerup", cancel);
+  node.addEventListener("pointercancel", cancel);
+  node.addEventListener("pointerleave", cancel);
+  node.addEventListener("pointermove", e=>{ if(Math.abs(e.clientX-lp.x)>10||Math.abs(e.clientY-lp.y)>10) cancel(); });
+}
+
+function finishQuiz(){
+  const b = BLOCKS[quiz.bi];
+  const score = quiz.results.filter(Boolean).length;
+  quiz.score = score;
+  const prev = state.best[b.id];
+  if(prev==null || score>prev){ state.best[b.id]=score; LS.set("best",state.best); pushScore(); }
+  state.view="result"; render(); window.scrollTo(0,0);
+}
+function renderResult(app){
+  const b = BLOCKS[quiz.bi], l=L(), i = quiz.bi;
+  const pct = Math.round(quiz.score/b.qs.length*100);
+  const ok = pct>=60;
+  const nextOpen = i < BLOCKS.length-1 && canPlay(i+1);
+  app.append(
+    el("p",{class:"hint"}, `Bloque ${i+1}: ${b.title[l]}`),
+    el("div",{class:"big"}, `${quiz.score}/${b.qs.length}`),
+    el("div",{class:"verdict "+(ok?"pass":"fail")}, ok ? `${pct}%: bloque superado` : `${pct}%: necesitas un 60% para superarlo`)
+  );
+  if(!ok && i < BLOCKS.length-1 && !passed(b)) app.append(el("p",{class:"hint"}, `El bloque ${i+2} se desbloquea cuando superes este.`));
+  const fails = quiz.order.map((oi,k)=>({q:b.qs[oi],k})).filter(x=>quiz.results[x.k]===false);
+  if(fails.length){
+    app.append(el("h2",{},"Repasa los fallos"));
+    const ul = el("ul",{class:"review"});
+    fails.forEach(({q})=>ul.append(el("li",{}, q.q[l], el("br"), el("span",{class:"ans"}, q.o[l][q.a]))));
+    app.append(ul);
+  }
+  app.append(
+    el("div",{style:"display:grid;gap:10px;margin-top:24px"},
+      el("button",{class: ok&&nextOpen ? "btn ghost" : "btn",type:"button",onclick:()=>startQuiz(i)},"Volver a realizar el bloque"),
+      nextOpen ? el("button",{class:"btn",type:"button",onclick:()=>startQuiz(i+1)},`Ir al bloque ${i+2}`) : null,
+      el("button",{class:"btn ghost",type:"button",onclick:()=>{ state.view="list"; render(); }},"Ver todos los bloques")
+    )
+  );
+}
+
+function renderRank(app){
+  app.append(el("h1",{},"Ranking"), el("p",{class:"lead"},"Puntos = suma de tus mejores aciertos en cada bloque."));
+  const myTotal = Object.values(state.best).reduce((s,v)=>s+v,0);
+  if(shared.status==="loading" || shared.status==="idle"){ app.append(el("p",{class:"hint"},"Cargando ranking…")); return; }
+  if(shared.status==="off"){
+    app.append(el("div",{class:"note"},"No se ha podido cargar el ranking. Comprueba tu conexión y vuelve a abrir esta pestaña. Tus puntos están guardados en este dispositivo."));
+    app.append(el("ul",{class:"rank"}, el("li",{class:"me"}, el("span",{class:"pos"},"–"), el("span",{}, state.alias, el("div",{class:"sub"}, `${Object.keys(state.best).length} bloques`)), el("span",{class:"pts"}, String(myTotal)))));
+    return;
+  }
+  if(!shared.rows.length){ app.append(el("p",{class:"hint"},"Aún no hay nadie en el ranking. Completa un bloque para aparecer el primero.")); return; }
+  const ul = el("ul",{class:"rank"});
+  shared.rows.forEach((r,i)=>{
+    ul.append(el("li",{class: r.me?"me":""},
+      el("span",{class:"pos"}, String(i+1)),
+      el("span",{}, String(r.alias||"Anónimo") + (r.me?" (tú)":""), el("div",{class:"sub"}, `${r.blocks||0} bloques` + (r.exam!=null ? ` · examen ${r.exam}/${EXAM.size}` : ""))),
+      el("span",{class:"pts"}, String(r.total||0))));
+  });
+  app.append(ul);
+}
+
+/* ============ EXAMEN FINAL ============ */
+function rerenderQuiz(){ (quiz && quiz.mode==="exam" ? renderExamQuestion : renderQuestion)(); }
+function examCard(){
+  const ok = examUnlocked();
+  const done = passedCount();
+  const card = el("div",{class:"exam-card"+(ok?" on":"")},
+    el("div",{class:"k"}, "Examen final"),
+    el("div",{class:"t"}, `${EXAM.size} preguntas al azar · ${EXAM.minutes} minutos`),
+    el("p",{}, ok ? "Como el examen real: sin corrección hasta entregar y aprobado con un 60%." :
+      `Se desbloquea al superar los ${TARGET_BLOCKS} bloques. Llevas ${done} de ${TARGET_BLOCKS}.`),
+    state.examBest!=null ? el("p",{class:"st passed"}, `Tu mejor nota: ${state.examBest}/${EXAM.size}`) : null,
+    el("button",{class:"btn",type:"button",disabled:!ok,onclick:startExam}, ok ? (state.examBest!=null ? "Repetir el examen final" : "Empezar el examen final") : "🔒 Bloqueado")
+  );
+  return card;
+}
+function rnd(n){ if(window.crypto && crypto.getRandomValues){ const u=new Uint32Array(1), lim=Math.floor(4294967296/n)*n; let x; do{ crypto.getRandomValues(u); x=u[0]; }while(x>=lim); return x%n; } return Math.floor(Math.random()*n); }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=rnd(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function perm(n){ return shuffle([...Array(n).keys()]); }
+let examTimer = null;
+function startExam(){
+  if(!examUnlocked()) return;
+  const pool = [];
+  BLOCKS.forEach((b,bi)=>b.qs.forEach((_,qi)=>pool.push({bi,qi})));
+  const items = shuffle(pool).slice(0, EXAM.size);
+  quiz = { mode:"exam", items, opts: items.map(()=>perm(4)), qi:0, answers:new Array(items.length).fill(-1), qLang: state.lang, from: state.view, deadline: Date.now()+EXAM.minutes*60000 };
+  state.view="quiz"; render(); renderExamQuestion(); window.scrollTo(0,0);
+  clearInterval(examTimer);
+  examTimer = setInterval(()=>{
+    const left = quiz && quiz.mode==="exam" ? quiz.deadline - Date.now() : 0;
+    const t = document.getElementById("exam-timer");
+    if(t) t.textContent = fmtLeft(left);
+    if(left <= 0){ clearInterval(examTimer); finishExam(true); }
+  }, 1000);
+}
+function fmtLeft(ms){ ms=Math.max(0,ms); const m=Math.floor(ms/60000), s=Math.floor(ms%60000/1000); return `${m}:${String(s).padStart(2,"0")}`; }
+function renderExamQuestion(){
+  const app = $("#app"); app.innerHTML="";
+  const it = quiz.items[quiz.qi], b = BLOCKS[it.bi], q = b.qs[it.qi], l = quiz.qLang==="en"?1:0;
+  const answered = quiz.answers.filter(a=>a>=0).length;
+  const card = el("section",{class:"qcard"},
+    el("div",{class:"qmeta"}, el("span",{class:"tag"}, T[q.t][l]), el("span",{}, `${quiz.qi+1} de ${quiz.items.length}`)),
+    el("p",{class:"qtext"}, q.q[l]),
+    el("div",{class:"qlang"}, "Elige una respuesta; puedes cambiarla hasta entregar. Mantén pulsada la pregunta para verla en ", el("b",{}, l?"español":"inglés"), ".")
+  );
+  const opts = el("div",{class:"opts",role:"radiogroup","aria-label":"Respuestas"});
+  quiz.opts[quiz.qi].forEach((k,j)=>{ const txt = q.o[l][k];
+    opts.append(el("button",{type:"button",class:"opt"+(quiz.answers[quiz.qi]===k?" sel":""),role:"radio","aria-checked":String(quiz.answers[quiz.qi]===k),onclick:()=>{
+      if(lp.fired){ lp.fired=false; return; }
+      quiz.answers[quiz.qi]=k; renderExamQuestion();
+    }}, el("span",{class:"k"}, String.fromCharCode(65+j)), el("span",{}, txt)));
+  });
+  card.append(opts);
+  attachLongPress(card);
+  const last = quiz.qi===quiz.items.length-1;
+  app.append(
+    el("div",{class:"exam-top"},
+      el("button",{class:"backlink",type:"button",onclick:()=>{ if(confirm("¿Salir del examen? Se perderá este intento.")){ clearInterval(examTimer); state.view=quiz.from||"home"; quiz=null; render(); } }},"Salir"),
+      el("span",{class:"timer",id:"exam-timer","aria-label":"Tiempo restante"}, fmtLeft(quiz.deadline-Date.now()))),
+    el("div",{class:"hint",style:"margin:4px 0 14px"}, `Respondidas: ${answered} de ${quiz.items.length}`),
+    card,
+    el("div",{class:"actions",style:"display:grid;grid-template-columns:1fr 1fr;gap:10px"},
+      el("button",{class:"btn ghost",type:"button",disabled:quiz.qi===0,onclick:()=>{ quiz.qi--; quiz.qLang=state.lang; renderExamQuestion(); window.scrollTo(0,0); }},"Anterior"),
+      last ? el("button",{class:"btn",type:"button",onclick:()=>{
+          const pend = quiz.answers.filter(a=>a<0).length;
+          if(pend && !confirm(`Te quedan ${pend} preguntas sin responder. ¿Entregar igualmente?`)) return;
+          finishExam(false);
+        }},"Entregar examen")
+      : el("button",{class:"btn",type:"button",onclick:()=>{ quiz.qi++; quiz.qLang=state.lang; renderExamQuestion(); window.scrollTo(0,0); }},"Siguiente"))
+  );
+}
+function finishExam(timeout){
+  clearInterval(examTimer);
+  if(!quiz || quiz.mode!=="exam") return;
+  quiz.timeout = timeout;
+  quiz.score = quiz.items.reduce((s,it,k)=> s + (quiz.answers[k]===BLOCKS[it.bi].qs[it.qi].a ? 1 : 0), 0);
+  if(state.examBest==null || quiz.score>state.examBest){ state.examBest = quiz.score; LS.set("examBest", quiz.score); pushScore(); }
+  state.view="examResult"; render(); window.scrollTo(0,0);
+}
+function renderExamResult(app){
+  const l = L(), n = quiz.items.length, pct = Math.round(quiz.score/n*100), ok = quiz.score/n >= EXAM.pass;
+  app.append(
+    el("p",{class:"hint"}, quiz.timeout ? "Examen final · entregado al acabarse el tiempo" : "Examen final"),
+    el("div",{class:"big"}, `${quiz.score}/${n}`),
+    el("div",{class:"verdict "+(ok?"pass":"fail")}, ok ? `${pct}%: aprobado` : `${pct}%: por debajo del 60%`)
+  );
+  const byT = {};
+  quiz.items.forEach((it,k)=>{ const q=BLOCKS[it.bi].qs[it.qi]; byT[q.t] = byT[q.t] || {ok:0,n:0}; byT[q.t].n++; if(quiz.answers[k]===q.a) byT[q.t].ok++; });
+  app.append(el("h2",{},"Resultado por tema"));
+  const ul = el("ul",{class:"rank"});
+  Object.entries(byT).sort((a,b)=>a[1].ok/a[1].n - b[1].ok/b[1].n).forEach(([t,v])=>{
+    const p = Math.round(v.ok/v.n*100);
+    ul.append(el("li",{}, el("span",{class:"pos"}, ""), el("span",{}, T[t][l]), el("span",{class:"pts "+(p>=60?"st passed":"st locked")}, `${v.ok}/${v.n}`)));
+  });
+  app.append(ul);
+  const fails = quiz.items.map((it,k)=>({q:BLOCKS[it.bi].qs[it.qi],k})).filter(x=>quiz.answers[x.k]!==x.q.a);
+  if(fails.length){
+    app.append(el("h2",{},"Repasa los fallos"));
+    const rv = el("ul",{class:"review"});
+    fails.forEach(({q})=>rv.append(el("li",{}, q.q[l], el("br"), el("span",{class:"ans"}, q.o[l][q.a]), el("div",{class:"hint",style:"margin-top:4px"}, q.e[l]))));
+    app.append(rv);
+  }
+  app.append(el("div",{style:"display:grid;gap:10px;margin-top:24px"},
+    el("button",{class:"btn",type:"button",onclick:startExam},"Repetir el examen final"),
+    el("button",{class:"btn ghost",type:"button",onclick:()=>{ state.view="home"; render(); }},"Volver a mi ruta")));
+}
+
+render();
+if(state.alias) pushScore();
+</script>
+</body>
+</html>
